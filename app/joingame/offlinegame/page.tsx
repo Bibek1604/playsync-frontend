@@ -1,142 +1,173 @@
 'use client';
 import { useState } from 'react';
-import { Gamepad2, Search, SlidersHorizontal, Clock, Star, Play, Download, Plus, Trophy, Filter } from 'lucide-react';
+import { Gamepad2, Search, FolderOpen, Clock, Star, Download, Play } from 'lucide-react';
 
-export default function OfflineGamesWorkspaceEnhanced() {
+export default function OfflineGamesLibrary() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('lastPlayed'); // lastPlayed | progress | title | rating
 
-  const games = [
-    { id: 1, title: 'Adventure Quest', genre: 'RPG', progress: 67, lastPlayed: '2 days ago', totalHours: 28.4, rating: 4.8, completed: false },
-    { id: 2, title: 'Space Survivor', genre: 'Roguelike', progress: 100, lastPlayed: 'Yesterday', totalHours: 41.2, rating: 4.6, completed: true },
-    { id: 3, title: 'Puzzle Kingdom', genre: 'Puzzle', progress: 12, lastPlayed: '1 week ago', totalHours: 4.1, rating: 4.7, completed: false },
-    { id: 4, title: 'Retro Racer 1989', genre: 'Racing', progress: 0, lastPlayed: 'Never', totalHours: 0, rating: 4.4, completed: false },
-    { id: 5, title: 'Neon Blade Runner', genre: 'Action', progress: 45, lastPlayed: '3 days ago', totalHours: 15.8, rating: 4.9, completed: false },
+  const offlineGames = [
+    {
+      id: 1,
+      gameTitle: 'Adventure Quest',
+      genre: 'RPG',
+      lastPlayed: '2 days ago',
+      progress: 67,
+      totalHours: 28.4,
+      rating: 4.8,
+      icon: '🗡️',
+    },
+    {
+      id: 2,
+      gameTitle: 'Space Survivor',
+      genre: 'Roguelike',
+      lastPlayed: 'Yesterday',
+      progress: 100,
+      totalHours: 41.2,
+      rating: 4.6,
+      icon: '🌌',
+    },
+    {
+      id: 3,
+      gameTitle: 'Puzzle Kingdom',
+      genre: 'Puzzle',
+      lastPlayed: '1 week ago',
+      progress: 12,
+      totalHours: 4.1,
+      rating: 4.7,
+      icon: '🧩',
+    },
+    {
+      id: 4,
+      gameTitle: 'Retro Racer 1989',
+      genre: 'Racing',
+      lastPlayed: 'Never',
+      progress: 0,
+      totalHours: 0,
+      rating: 4.4,
+      icon: '🏎️',
+    },
+    {
+      id: 5,
+      gameTitle: 'Neon Blade Runner',
+      genre: 'Action',
+      lastPlayed: '3 days ago',
+      progress: 45,
+      totalHours: 15.8,
+      rating: 4.9,
+      icon: '⚡',
+    },
+    {
+      id: 6,
+      gameTitle: 'Mystic Forest Tales',
+      genre: 'Adventure',
+      lastPlayed: '5 days ago',
+      progress: 88,
+      totalHours: 19.6,
+      rating: 4.7,
+      icon: '🌲',
+    },
   ];
 
-  const filteredGames = games
-    .filter(game => game.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    .sort((a, b) => {
-      if (sortBy === 'progress') return b.progress - a.progress;
-      if (sortBy === 'rating') return b.rating - a.rating;
-      if (sortBy === 'title') return a.title.localeCompare(b.title);
-      // default: lastPlayed (you can implement real date sorting later)
-      return 0;
-    });
+  const filteredGames = offlineGames.filter(game =>
+    game.gameTitle.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        {/* Header with Stats */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
-          <div>
-            <div className="flex items-center gap-4 mb-3">
-              <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <Gamepad2 className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold">My Offline Collection</h1>
-                <p className="text-slate-400 mt-1">
-                  {games.length} games • {games.filter(g => g.completed).length} completed • {games.reduce((sum, g) => sum + g.totalHours, 0).toFixed(1)}h played
-                </p>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Gamepad2 className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">Offline Games</h1>
+              <p className="text-gray-600">Play your installed games anywhere — no internet needed</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search games..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl w-64 focus:outline-none focus:border-emerald-500 transition-colors"
-              />
-            </div>
-            <button className="p-2.5 bg-slate-800 border border-slate-700 rounded-xl hover:bg-slate-700 transition-colors">
-              <SlidersHorizontal className="w-5 h-5" />
-            </button>
-          </div>
-        </header>
-
-        {/* Quick Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-          <div className="bg-gradient-to-br from-emerald-900/40 to-teal-900/40 rounded-2xl p-5 border border-emerald-800/30">
-            <p className="text-slate-400 text-sm">Most Played</p>
-            <p className="text-2xl font-bold mt-1">Space Survivor</p>
-          </div>
-          <div className="bg-gradient-to-br from-emerald-900/40 to-teal-900/40 rounded-2xl p-5 border border-emerald-800/30">
-            <p className="text-slate-400 text-sm">Achievement Progress</p>
-            <p className="text-2xl font-bold mt-1">43%</p>
-          </div>
-          <div className="bg-gradient-to-br from-emerald-900/40 to-teal-900/40 rounded-2xl p-5 border border-emerald-800/30">
-            <p className="text-slate-400 text-sm">Longest Session</p>
-            <p className="text-2xl font-bold mt-1">4h 12m</p>
-          </div>
-          <div className="bg-gradient-to-br from-emerald-900/40 to-teal-900/40 rounded-2xl p-5 border border-emerald-800/30">
-            <p className="text-slate-400 text-sm">Favorite Genre</p>
-            <p className="text-2xl font-bold mt-1">RPG</p>
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search your games..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none shadow-sm"
+            />
           </div>
         </div>
 
         {/* Games Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredGames.map(game => (
-            <div key={game.id} className="group bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-900/20 transition-all duration-300">
-              <div className="h-48 bg-gradient-to-br from-slate-700 to-slate-900 relative">
-                <div className="absolute inset-0 flex items-center justify-center text-7xl font-black text-slate-600/30">
-                  {game.title[0]}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredGames.map((game) => (
+            <div
+              key={game.id}
+              className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:-translate-y-1"
+            >
+              {/* Game Icon & Title */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center text-3xl">
+                  {game.icon}
                 </div>
-                {game.completed && (
-                  <div className="absolute top-3 right-3 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                    100% Complete
-                  </div>
-                )}
+                <h3 className="text-xl font-bold text-gray-800">{game.gameTitle}</h3>
               </div>
-              <div className="p-5">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-lg group-hover:text-emerald-400 transition-colors">
-                    {game.title}
-                  </h3>
-                  <div className="flex items-center gap-1 text-amber-400">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span className="text-sm">{game.rating}</span>
-                  </div>
+
+              {/* Info */}
+              <div className="space-y-3 mb-5">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <FolderOpen className="w-4 h-4 text-green-600" />
+                  <span className="text-sm">{game.genre}</span>
                 </div>
 
-                <div className="flex gap-3 text-xs text-slate-400 mb-4">
-                  <span>{game.genre}</span>
-                  <span>•</span>
-                  <span>{game.totalHours}h</span>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Clock className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm">Last played: {game.lastPlayed}</span>
                 </div>
 
-                <div className="mb-5">
-                  <div className="w-full bg-slate-700 rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full"
-                      style={{ width: `${game.progress}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs mt-1 text-slate-400">
-                    <span>{game.progress}%</span>
-                    <span>{game.lastPlayed}</span>
-                  </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Star className="w-4 h-4 text-amber-500" />
+                  <span className="text-sm font-semibold text-gray-800">
+                    Rating: {game.rating} • {game.totalHours}h played
+                  </span>
                 </div>
-
-                <button className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl font-medium hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-md">
-                  <Play className="w-5 h-5" />
-                  {game.progress === 0 ? 'Play Now' : 'Continue'}
-                </button>
               </div>
+
+              {/* Progress Bar */}
+              <div className="mb-5">
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full transition-all"
+                    style={{ width: `${game.progress}%` }}
+                  ></div>
+                </div>
+                <div className="mt-1 text-xs text-gray-600 text-right">
+                  {game.progress}% complete
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-200 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+                <Play className="w-5 h-5" />
+                {game.progress === 0 ? 'Start Game' : 'Continue Playing'}
+              </button>
             </div>
           ))}
 
-          {/* Add Game Placeholder */}
-          <div className="border-2 border-dashed border-slate-600 rounded-2xl h-full min-h-[420px] flex flex-col items-center justify-center text-slate-500 hover:text-emerald-400 hover:border-emerald-500/50 transition-all cursor-pointer group">
-            <Download className="w-12 h-12 mb-4 opacity-60 group-hover:opacity-100" />
-            <span className="font-medium text-lg">Install New Game</span>
-          </div>
+          {/* Empty/Add More Card */}
+          {filteredGames.length === 0 && (
+            <div className="col-span-full bg-white/60 border-2 border-dashed border-gray-300 rounded-2xl p-12 text-center">
+              <FolderOpen className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">No games found</h3>
+              <p className="text-gray-600 mb-6">Try searching again or download new games!</p>
+              <button className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium hover:shadow-lg transition-all">
+                <Download className="w-5 h-5" />
+                Download More Games
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
