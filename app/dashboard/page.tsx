@@ -112,7 +112,7 @@ export default function PlaySyncDashboard() {
                 JD
               </div>
               <button
-                onClick={() => router.push("/joingame")}
+                onClick={() => router.push("/games")}
                 className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 
                  text-white font-semibold rounded-xl 
                  shadow-md hover:shadow-lg 

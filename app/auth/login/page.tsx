@@ -28,7 +28,7 @@ export default function PlaySyncLogin() {
     e.preventDefault();
     console.log("Form submitted:", formData);
     if (isLogin) {
-      router.push("/home/dashboard");
+      router.push("/dashboard");
     }
   };
 

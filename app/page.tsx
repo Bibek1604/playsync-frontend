@@ -1,4 +1,17 @@
-// app/page.tsx
+/**
+ * PlaySync Landing Page
+ * 
+ * This is the main landing page for the PlaySync gaming platform.
+ * It showcases the platform's features, statistics, and provides
+ * entry points for users to find players or host gaming events.
+ * 
+ * Features:
+ * - Animated hero section with floating particles
+ * - Real-time animated statistics counter
+ * - Responsive design for all screen sizes
+ * - Smooth scroll animations using Framer Motion
+ */
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -16,18 +29,33 @@ import {
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────
-// Utility
+// Utility Functions
 // ─────────────────────────────────────────────────────────────
+
+/**
+ * Combines and merges Tailwind CSS classes
+ * @param classes - Array of class names to combine
+ * @returns Merged class string
+ */
 const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
 
 // ─────────────────────────────────────────────────────────────
 // Animation Variants
 // ─────────────────────────────────────────────────────────────
+
+/**
+ * Fade in from bottom animation
+ * Elements start invisible and below, then fade in and move up
+ */
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } },
 };
 
+/**
+ * Stagger container for sequential animations
+ * Children will animate one after another with a delay
+ */
 const staggerContainer = {
   hidden: { opacity: 0 },
   visible: {
@@ -37,8 +65,17 @@ const staggerContainer = {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Animated Counter
+// Animated Counter Component
 // ─────────────────────────────────────────────────────────────
+
+/**
+ * Animated number counter that counts from 0 to target value
+ * Triggers when the element comes into view
+ * 
+ * @param end - Target number to count to
+ * @param duration - Animation duration in seconds (default: 2.2)
+ * @param suffix - Optional suffix to append (e.g., '+', '%')
+ */
 const AnimatedCounter = ({
   end,
   duration = 2.2,
@@ -83,8 +120,16 @@ const AnimatedCounter = ({
 };
 
 // ─────────────────────────────────────────────────────────────
-// Reusable Section wrapper
+// Reusable Section Wrapper Component
 // ─────────────────────────────────────────────────────────────
+
+/**
+ * Section wrapper with scroll-triggered animations
+ * Automatically animates when scrolled into view
+ * 
+ * @param children - Content to be wrapped
+ * @param className - Additional CSS classes
+ */
 const Section = ({
   children,
   className = '',
@@ -109,12 +154,22 @@ const Section = ({
 };
 
 // ─────────────────────────────────────────────────────────────
-// HERO
+// Hero Section Component
 // ─────────────────────────────────────────────────────────────
+
+/**
+ * Main hero section of the landing page
+ * Features:
+ * - Animated floating particles background
+ * - Main headline with gradient text
+ * - Two CTA buttons (Find Players & Host Event)
+ * - Mockup preview with gradient effects
+ * - Animated scroll indicator
+ */
 const Hero = () => {
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-      {/* Floating particles */}
+      {/* Animated floating particles for visual effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(28)].map((_, i) => (
           <motion.div
@@ -139,6 +194,7 @@ const Hero = () => {
         ))}
       </div>
 
+      {/* Main hero content */}
       <div className="container mx-auto px-5 sm:px-8 lg:px-12 relative z-10">
         <motion.div
           className="text-center max-w-6xl mx-auto"
@@ -146,12 +202,14 @@ const Hero = () => {
           animate="visible"
           variants={staggerContainer}
         >
+          {/* Badge/Tag line */}
           <motion.div variants={fadeInUp} className="mb-8">
             <span className="inline-block px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-600/20 to-purple-600/20 border border-cyan-500/30 text-cyan-300 text-sm font-mono tracking-wider uppercase">
               Next-Gen Gaming Matchmaking
             </span>
           </motion.div>
 
+          {/* Main headline with gradient text */}
           <motion.h1
             variants={fadeInUp}
             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight tracking-tight"
@@ -163,6 +221,7 @@ const Hero = () => {
             Instantly
           </motion.h1>
 
+          {/* Subtitle/Description */}
           <motion.p
             variants={fadeInUp}
             className="text-xl sm:text-2xl md:text-3xl text-gray-300/90 mb-12 max-w-4xl mx-auto font-light"
@@ -170,10 +229,12 @@ const Hero = () => {
             Online or Offline — Connect with players who match your skill, playstyle and vibe
           </motion.p>
 
+          {/* Call-to-Action Buttons */}
           <motion.div
             variants={fadeInUp}
             className="flex flex-col sm:flex-row gap-5 justify-center items-center"
           >
+            {/* Primary CTA - Find Players */}
             <button className="group relative px-10 py-5 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 hover:to-cyan-500 text-white font-semibold text-lg rounded-xl shadow-xl shadow-cyan-500/30 hover:shadow-cyan-400/60 transition-all duration-300 hover:scale-[1.03] active:scale-95 min-w-[240px]">
               <span className="flex items-center justify-center gap-3">
                 <Gamepad2 className="w-6 h-6" />
@@ -181,6 +242,7 @@ const Hero = () => {
               </span>
             </button>
 
+            {/* Secondary CTA - Host Event */}
             <button className="group relative px-10 py-5 bg-gradient-to-r from-purple-600 to-magenta-600 hover:from-purple-500 hover:to-magenta-500 text-white font-semibold text-lg rounded-xl shadow-xl shadow-purple-600/30 hover:shadow-purple-500/60 transition-all duration-300 hover:scale-[1.03] active:scale-95 min-w-[240px]">
               <span className="flex items-center justify-center gap-3">
                 <MapPin className="w-6 h-6" />
@@ -189,20 +251,26 @@ const Hero = () => {
             </button>
           </motion.div>
 
-          {/* Mockup placeholder - replace with real images */}
+          {/* Platform mockup/preview section */}
           <motion.div
             initial={{ opacity: 0, y: 140 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9, duration: 1.1 }}
             className="mt-20 md:mt-28 relative max-w-5xl mx-auto"
           >
+            {/* Glow effect behind mockup */}
             <div className="absolute inset-0 bg-gradient-radial from-cyan-600/30 via-purple-600/10 to-transparent blur-3xl" />
+            
+            {/* Mockup container */}
             <div className="relative bg-gradient-to-br from-gray-900/70 to-gray-800/70 backdrop-blur-xl border border-cyan-500/25 rounded-3xl p-10 shadow-2xl">
+              {/* Decorative gradient bars */}
               <div className="grid grid-cols-3 gap-5 mb-6">
                 <div className="h-4 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full" />
                 <div className="h-4 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full" />
                 <div className="h-4 bg-gradient-to-r from-magenta-400 to-pink-500 rounded-full" />
               </div>
+              
+              {/* Placeholder content boxes */}
               <div className="space-y-5">
                 <div className="h-16 bg-gradient-to-r from-gray-700/60 to-gray-600/60 rounded-xl" />
                 <div className="h-16 bg-gradient-to-r from-gray-700/60 to-gray-600/60 rounded-xl" />
@@ -213,6 +281,7 @@ const Hero = () => {
         </motion.div>
       </div>
 
+      {/* Animated scroll indicator */}
       <motion.div
         className="absolute bottom-10 left-1/2 -translate-x-1/2"
         animate={{ y: [0, 15, 0] }}
@@ -225,11 +294,19 @@ const Hero = () => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// All other sections (very similar to your original code)
+// Statistics Section Component
 // ─────────────────────────────────────────────────────────────
-// ... (I keep them almost identical, just cleaned up & fixed small issues)
 
+/**
+ * Platform statistics section
+ * Displays key metrics with animated counters
+ * - Active Players count
+ * - Total Matches created
+ * - Cities with presence
+ * - Supported games count
+ */
 const Stats = () => {
+  // Define platform statistics
   const stats = [
     { label: 'Active Players', value: 250000, suffix: '+' },
     { label: 'Matches Created', value: 1200000, suffix: '+' },
@@ -250,9 +327,12 @@ const Stats = () => {
               viewport={{ once: true }}
               className="text-center"
             >
+              {/* Animated counter with gradient */}
               <div className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-cyan-400 to-magenta-400 bg-clip-text text-transparent mb-3">
                 <AnimatedCounter end={stat.value} suffix={stat.suffix} />
               </div>
+              
+              {/* Stat label */}
               <div className="text-gray-400 font-medium">{stat.label}</div>
             </motion.div>
           ))}
@@ -262,15 +342,37 @@ const Stats = () => {
   );
 };
 
-// Features, HowItWorks, Games, Testimonials, FAQ, CTA, Footer components follow the same pattern as your original code
-// I won't repeat all of them here for brevity, but you can copy-paste them directly from your message
-// (they were already good — just make sure all closing tags are present)
+// ─────────────────────────────────────────────────────────────
+// Main Landing Page Component
+// ─────────────────────────────────────────────────────────────
 
+/**
+ * GameMatchLanding - Main export component
+ * 
+ * This is the root component that assembles all sections
+ * of the landing page in order:
+ * 1. Hero - Main introduction and CTAs
+ * 2. Stats - Platform statistics
+ * 3. Features - Platform capabilities (commented out)
+ * 4. HowItWorks - User journey (commented out)
+ * 5. Games - Supported games (commented out)
+ * 6. Testimonials - User reviews (commented out)
+ * 7. FAQ - Common questions (commented out)
+ * 8. CTA - Final call-to-action (commented out)
+ * 9. Footer - Site footer (commented out)
+ * 
+ * Note: Some sections are commented out and need to be implemented
+ */
 export default function GameMatchLanding() {
   return (
     <main className="bg-black text-white min-h-screen">
+      {/* Hero section with main messaging and CTAs */}
       <Hero />
+      
+      {/* Platform statistics with animated counters */}
       <Stats />
+      
+      {/* TODO: Uncomment and implement these sections */}
       {/* <Features /> */}
       {/* <HowItWorks /> */}
       {/* <Games /> */}

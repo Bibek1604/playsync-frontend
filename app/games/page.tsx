@@ -169,7 +169,7 @@ export default function PlaySyncJoinGame() {
         {selectedMode && (
           <div className="text-center animate-fade-in">
             <button 
-              onClick={() => router.push(selectedMode === 'offline' ? '/joingame/offlinegame' : '/joingame/onlinegame')}
+              onClick={() => router.push(selectedMode === 'offline' ? '/games/offline' : '/games/online')}
               className="px-12 py-5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-lg font-bold rounded-2xl shadow-2xl shadow-emerald-300 hover:shadow-emerald-400 hover:scale-105 active:scale-95 transition-all duration-300"
             >
               Continue to {selectedMode === 'offline' ? 'Offline' : 'Online'} Games
