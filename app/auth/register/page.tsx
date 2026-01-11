@@ -1,20 +1,20 @@
- "use client";
-import { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from 'lucide-react';
+"use client";
+import { useState } from "react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
 
 export default function AuthScreens() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submittead:', formData);
+    console.log("Form submittead:", formData);
     // Add your authentication logic here
   };
 
@@ -37,10 +37,10 @@ export default function AuthScreens() {
               </div>
             </div>
             <h1 className="text-2xl font-bold text-center">
-              {isLogin ? 'Welcome Back' : 'Create Account'}
+              {isLogin ? "Welcome Back" : "Create Account"}
             </h1>
             <p className="text-green-100 text-center mt-2">
-              {isLogin ? 'Sign in to continue' : 'Sign up to get started'}
+              {isLogin ? "Sign in to continue" : "Sign up to get started"}
             </p>
           </div>
 
@@ -95,7 +95,7 @@ export default function AuthScreens() {
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
@@ -108,7 +108,11 @@ export default function AuthScreens() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -122,7 +126,7 @@ export default function AuthScreens() {
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
@@ -151,7 +155,7 @@ export default function AuthScreens() {
                 type="submit"
                 className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white py-3 rounded-lg font-semibold hover:from-green-700 hover:to-green-600 transition duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
               >
-                {isLogin ? 'Sign In' : 'Create Account'}
+                {isLogin ? "Sign In" : "Create Account"}
                 <ArrowRight className="w-5 h-5" />
               </button>
             </form>
@@ -169,13 +173,15 @@ export default function AuthScreens() {
             {/* Toggle between login and register */}
             <div className="text-center">
               <p className="text-gray-600">
-                {isLogin ? "Don't have an account?" : 'Already have an account?'}
+                {isLogin
+                  ? "Don't have an account?"
+                  : "Already have an account?"}
                 <button
                   type="button"
                   onClick={() => setIsLogin(!isLogin)}
                   className="ml-2 text-green-600 hover:text-green-700 font-semibold"
                 >
-                  {isLogin ? 'Sign Up' : 'Sign In'}
+                  {isLogin ? "Sign Up" : "Sign In"}
                 </button>
               </p>
             </div>
