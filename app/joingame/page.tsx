@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { Gamepad2, Wifi, WifiOff, Zap, Users, Trophy, Crown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function PlaySyncJoinGame() {
   const [selectedMode, setSelectedMode] = useState(null);
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
@@ -166,7 +168,10 @@ export default function PlaySyncJoinGame() {
         {/* Continue Button */}
         {selectedMode && (
           <div className="text-center animate-fade-in">
-            <button className="px-12 py-5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-lg font-bold rounded-2xl shadow-2xl shadow-emerald-300 hover:shadow-emerald-400 hover:scale-105 active:scale-95 transition-all duration-300">
+            <button 
+              onClick={() => router.push(selectedMode === 'offline' ? '/joingame/offlinegame' : '/joingame/onlinegame')}
+              className="px-12 py-5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-lg font-bold rounded-2xl shadow-2xl shadow-emerald-300 hover:shadow-emerald-400 hover:scale-105 active:scale-95 transition-all duration-300"
+            >
               Continue to {selectedMode === 'offline' ? 'Offline' : 'Online'} Games
               <svg className="inline-block ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
