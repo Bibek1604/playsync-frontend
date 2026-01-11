@@ -1,246 +1,223 @@
-// app/games/offline/[gameId]/page.tsx
+// components/chat/GroupChat.tsx
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Crown, Users, Circle, Send, Bot, Clock } from 'lucide-react'
-
-type Player = {
-  id: string
-  username: string
-  isHost: boolean
-  isOnline: boolean
-}
+import { 
+  Send, 
+  Smile, 
+  Paperclip, 
+  MoreVertical, 
+  Users, 
+  Gamepad2,
+  ChevronLeft,
+  MessageSquare,
+  UserCircle
+} from 'lucide-react'
 
 type Message = {
   id: string
-  username: string
+  sender: string
   content: string
   timestamp: string
+  isOwn: boolean
   isSystem?: boolean
 }
 
-export default function OfflineGameLobby() {
+export default function GroupChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      username: 'System',
-      content: 'Welcome to the lobby!',
-      timestamp: '19:42',
-      isSystem: true,
+      sender: 'System',
+      content: 'Welcome to the Squad Chat! Everyone is ready to play 🔥',
+      timestamp: '11:42 PM',
+      isOwn: false,
+      isSystem: true
     },
     {
       id: '2',
-      username: 'NinjaGamer',
-      content: 'anyone ready for some chaos? 🔥',
-      timestamp: '19:43',
+      sender: 'NinjaGamer',
+      content: 'yo who’s carrying tonight? 😏',
+      timestamp: '11:43 PM',
+      isOwn: false
     },
     {
       id: '3',
-      username: 'PixelQueen',
-      content: 'yesss lets gooo',
-      timestamp: '19:44',
+      sender: 'PixelQueen',
+      content: 'me obviously 💅',
+      timestamp: '11:44 PM',
+      isOwn: false
+    },
+    {
+      id: '4',
+      sender: 'You',
+      content: 'Let’s go ranked, I’m feeling immortal today',
+      timestamp: '11:45 PM',
+      isOwn: true
     },
   ])
 
   const [input, setInput] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Mock players
-  const players: Player[] = [
-    { id: '1', username: 'You', isHost: true, isOnline: true },
-    { id: '2', username: 'NinjaGamer', isHost: false, isOnline: true },
-    { id: '3', username: 'PixelQueen', isHost: false, isOnline: true },
-    { id: '4', username: 'ShadowByte', isHost: false, isOnline: false },
-    { id: '5', username: 'FrostByte', isHost: false, isOnline: true },
-  ]
-
-  const playerCount = players.length
-  const minPlayers = 2
-  const canStart = playerCount >= minPlayers
-
-  // Auto scroll chat
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Fake typing simulation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsTyping(true)
+      setTimeout(() => setIsTyping(false), 3000)
+    }, 7000)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim()) return
 
-    const newMsg: Message = {
+    const newMessage: Message = {
       id: Date.now().toString(),
-      username: 'You',
+      sender: 'You',
       content: input.trim(),
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isOwn: true
     }
 
-    setMessages(prev => [...prev, newMsg])
+    setMessages(prev => [...prev, newMessage])
     setInput('')
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
-      {/* Background effect */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(139,92,246,0.12)_0%,transparent_50%)] animate-pulse-slow" />
-      </div>
+    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-white text-gray-900">
+      {/* Header - Professional & Clean */}
+      <header className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {/* Back Button */}
+            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <ChevronLeft size={24} className="text-gray-700" />
+            </button>
 
-      <div className="relative z-10 flex flex-col h-screen max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-black/40 backdrop-blur-md border-b border-purple-900/30 p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
-                Local Party - Chaos Arena
-              </h1>
-              <div className="flex items-center gap-4 mt-1.5 text-sm text-slate-400">
-                <span className="font-mono bg-slate-900/60 px-3 py-1 rounded-full border border-slate-700/60">
-                  Room: X7K9P2M
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <Users size={16} />
-                  <span>
-                    {playerCount}/{8}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock size={16} />
-                  <span>Waiting for host</span>
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center shadow-md">
+                <Gamepad2 size={24} className="text-white" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-lg">Ranked Squad Chat</h2>
+                <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                  <Users size={14} />
+                  7 online • 12 members
+                </p>
               </div>
             </div>
-
-            <div className="px-4 py-2 bg-emerald-900/30 border border-emerald-700/40 rounded-lg text-emerald-300 font-medium">
-              Lobby • {playerCount} players
-            </div>
           </div>
+
+          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <MoreVertical size={20} className="text-gray-600" />
+          </button>
         </div>
+      </header>
 
-        {/* Main content */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Players sidebar */}
-          <div className="w-80 border-r border-purple-900/30 bg-black/30 backdrop-blur-sm flex-shrink-0">
-            <div className="p-4 border-b border-purple-900/30">
-              <h2 className="font-bold text-lg flex items-center gap-2">
-                <Users className="text-purple-400" />
-                Players ({playerCount})
-              </h2>
-            </div>
+      {/* Messages Area - Clean, Modern */}
+      <div className="flex-1 overflow-y-auto p-5 sm:p-8 space-y-6 bg-white">
+        {messages.map(msg => (
+          <div
+            key={msg.id}
+            className={`flex ${msg.isOwn ? 'justify-end' : 'justify-start'}`}
+          >
+            {!msg.isOwn && !msg.isSystem && (
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-sm font-bold mr-3 flex-shrink-0 shadow-sm">
+                {msg.sender.slice(0, 2)}
+              </div>
+            )}
 
-            <div className="p-3 space-y-2 overflow-y-auto h-full">
-              {players.map(player => (
-                <div
-                  key={player.id}
-                  className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
-                    player.isHost
-                      ? 'bg-purple-900/30 border border-purple-500/40'
-                      : 'hover:bg-slate-800/40'
-                  }`}
-                >
-                  <div className="relative">
-                    <div className="w-10 h-10 bg-gradient-to-br from-slate-700 to-slate-800 rounded-full flex items-center justify-center font-semibold text-sm">
-                      {player.username.slice(0, 2)}
-                    </div>
-
-                    {player.isOnline && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-950 rounded-full" />
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{player.username}</div>
-                    <div className="text-xs text-slate-500">
-                      {player.isHost ? 'Host' : 'Player'}
-                    </div>
-                  </div>
-
-                  {player.isHost && (
-                    <Crown size={18} className="text-yellow-400 flex-shrink-0" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Chat area */}
-          <div className="flex-1 flex flex-col">
-            <div className="flex-1 p-6 overflow-y-auto space-y-5 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-900">
-              {messages.map(msg => (
-                <div key={msg.id} className="flex gap-3">
-                  <div className="w-9 h-9 bg-gradient-to-br from-slate-700 to-slate-800 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                    {msg.isSystem ? <Bot size={18} /> : msg.username.slice(0, 2)}
-                  </div>
-
-                  <div className="flex-1">
-                    <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className={`font-medium ${msg.isSystem ? 'text-emerald-400' : 'text-white'}`}>
-                        {msg.username}
-                      </span>
-                      <span className="text-xs text-slate-500">{msg.timestamp}</span>
-                    </div>
-                    <p className={`text-sm ${msg.isSystem ? 'italic text-emerald-300/90' : 'text-slate-100'}`}>
-                      {msg.content}
-                    </p>
-                  </div>
-                </div>
-              ))}
-
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Chat input */}
-            <div className="border-t border-purple-900/30 p-5 bg-black/40 backdrop-blur-md">
-              <form onSubmit={handleSend} className="flex items-center gap-3">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  placeholder="Type a message..."
-                  className="flex-1 bg-slate-900/60 border border-slate-700 rounded-xl px-5 py-3 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition-all"
-                  disabled={!canStart}
-                />
-                <button
-                  type="submit"
-                  className="p-3 bg-purple-600 hover:bg-purple-500 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!canStart || !input.trim()}
-                >
-                  <Send size={20} />
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom bar */}
-        <div className="bg-black/60 backdrop-blur-md border-t border-purple-900/30 p-5">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <div className="text-slate-400">
-              {canStart ? (
-                <span className="text-emerald-400 font-medium">Ready to play! ({playerCount} players)</span>
-              ) : (
-                <span>Waiting for more players... ({playerCount}/{minPlayers})</span>
+            <div className={`max-w-[70%] ${msg.isSystem ? 'mx-auto text-center' : ''}`}>
+              {!msg.isOwn && !msg.isSystem && (
+                <span className="text-xs text-gray-500 mb-1 block font-medium">
+                  {msg.sender}
+                </span>
               )}
-            </div>
 
-            <button
-              className={`
-                px-8 py-3.5 rounded-xl font-bold text-lg transition-all
-                ${
-                  canStart
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 shadow-lg shadow-purple-900/40 hover:shadow-purple-700/60 transform hover:scale-105 active:scale-100'
-                    : 'bg-slate-700 cursor-not-allowed opacity-60'
-                }
-              `}
-              disabled={!canStart}
-            >
-              START GAME
-            </button>
+              <div
+                className={`
+                  px-5 py-3 rounded-2xl text-sm leading-relaxed shadow-sm
+                  ${
+                    msg.isSystem
+                      ? 'bg-gray-100 border border-gray-200 text-gray-700 italic max-w-lg mx-auto'
+                      : msg.isOwn
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-br-none'
+                      : 'bg-gray-100 border border-gray-200 text-gray-800 rounded-bl-none'
+                  }
+                `}
+              >
+                {msg.content}
+              </div>
+
+              <span className="text-xs text-gray-400 mt-1 block">
+                {msg.timestamp}
+              </span>
+            </div>
           </div>
-        </div>
+        ))}
+
+        {isTyping && (
+          <div className="flex items-center gap-3 text-sm text-gray-500">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+              ...
+            </div>
+            <span className="italic">Someone is typing...</span>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
       </div>
+
+      {/* Input Area - Premium Look */}
+      <footer className="bg-white border-t border-gray-200 shadow-sm">
+        <form
+          onSubmit={handleSend}
+          className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4"
+        >
+          <button
+            type="button"
+            className="p-3 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <Paperclip size={20} className="text-gray-600" />
+          </button>
+
+          <button
+            type="button"
+            className="p-3 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <Smile size={20} className="text-gray-600" />
+          </button>
+
+          <input
+            type="text"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-6 py-3.5
+                     focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200/50
+                     text-gray-900 placeholder-gray-500 transition-all shadow-sm"
+          />
+
+          <button
+            type="submit"
+            className={`p-4 rounded-full transition-all shadow-md ${
+              input.trim()
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+            disabled={!input.trim()}
+          >
+            <Send size={20} />
+          </button>
+        </form>
+      </footer>
     </div>
   )
 }
