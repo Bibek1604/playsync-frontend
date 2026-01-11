@@ -151,7 +151,7 @@ export default function OfflineGamesLibrary() {
               {/* Action Button */}
               <button className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-200 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
                 <Play className="w-5 h-5" />
-                {game.progress === 0 ? 'Start Game' : 'Continue Playing'}
+                {game.progress === 0 ? 'Start Game' : 'Join Game'}
               </button>
             </div>
           ))}
