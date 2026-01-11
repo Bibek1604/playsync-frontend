@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Gamepad2, Search, MapPin, Clock, Users, Globe } from 'lucide-react';
 
 export default function OnlineGameLobbies() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
   const lobbies = [
@@ -142,7 +144,10 @@ export default function OnlineGameLobbies() {
               </div>
 
               {/* Join Button */}
-              <button className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-200 transition-all duration-300 hover:scale-105 active:scale-95">
+              <button 
+                onClick={() => router.push(`/games/offline/${lobby.id}`)}
+                className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-200 transition-all duration-300 hover:scale-105 active:scale-95"
+              >
                 Join Game
               </button>
             </div>
