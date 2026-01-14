@@ -5,7 +5,7 @@ import { Gamepad2, Wifi, WifiOff, Zap, Users, Trophy, Crown } from 'lucide-react
 import { useRouter } from 'next/navigation';
 
 export default function PlaySyncJoinGame() {
-  const [selectedMode, setSelectedMode] = useState(null);
+  const [selectedMode, setSelectedMode] = useState<'offline' | 'online' | null>(null);
   const router = useRouter();
 
   return (

@@ -12,6 +12,7 @@ import {
   Trophy,
   Target,
 } from "lucide-react";
+import { useLogin } from "../../../lib/hooks/auth/useLogin";
 
 export default function PlaySyncLogin() {
   const [isLogin, setIsLogin] = useState(true);
@@ -23,12 +24,15 @@ export default function PlaySyncLogin() {
     confirmPassword: "",
   });
   const router = useRouter();
+  const { login, isLoading, error } = useLogin();
 
-  const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
     if (isLogin) {
-      router.push("/dashboard");
+      await login(formData.email, formData.password);
+      if (!error) {
+        router.push("/dashboard");
+      }
     }
   };
 

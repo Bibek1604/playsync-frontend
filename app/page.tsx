@@ -15,7 +15,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, easeOut } from 'framer-motion';
 import {
   Gamepad2,
   MapPin,
@@ -49,7 +49,7 @@ const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
  */
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: easeOut } },
 };
 
 /**
