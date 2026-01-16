@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
-import { useRegister } from "../../../lib/hooks/auth/useRegister";
+import { useAuthStore } from "../../../store/authStore";
 
 export default function AuthScreens() {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,7 +12,7 @@ export default function AuthScreens() {
     password: "",
     confirmPassword: "",
   });
-  const { register, isLoading, error } = useRegister();
+  const { registerUser, isLoading, error } = useAuthStore();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -24,7 +24,7 @@ export default function AuthScreens() {
         alert("Passwords do not match");
         return;
       }
-      await register(formData.fullName, formData.email, formData.password);
+      await registerUser({ email: formData.email, password: formData.password, name: formData.fullName });
     }
   };
 
