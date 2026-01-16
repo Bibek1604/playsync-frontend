@@ -24,10 +24,13 @@ import {
   Cell,
 } from "recharts";
 import { useRouter } from "next/navigation";
+import { useGames } from "../../api/queries";
+
 export default function PlaySyncDashboard() {
   const router = useRouter();
+  const { data: games, isLoading, error } = useGames();
 
-  // Sample data for charts
+  // Sample data for charts (fallback if no API data)
   const weeklyData = [
     { day: "Mon", hours: 3, wins: 5 },
     { day: "Tue", hours: 4, wins: 7 },
@@ -38,7 +41,11 @@ export default function PlaySyncDashboard() {
     { day: "Sun", hours: 7, wins: 9 },
   ];
 
-  const gameDistribution = [
+  const gameDistribution = games ? games.map((game: any, index: number) => ({
+    name: game.name || `Game ${index + 1}`,
+    value: game.value || Math.floor(Math.random() * 20) + 5,
+    color: ["#10b981", "#34d399", "#6ee7b7", "#a7f3d0", "#d1fae5"][index % 5]
+  })) : [
     { name: "Valorant", value: 35, color: "#10b981" },
     { name: "Apex Legends", value: 25, color: "#34d399" },
     { name: "CS:GO", value: 20, color: "#6ee7b7" },
@@ -69,6 +76,27 @@ export default function PlaySyncDashboard() {
     { id: 3, name: "GammaForce", status: "in-game", game: "CS:GO", level: 52 },
     { id: 4, name: "DeltaRush", status: "online", game: "Fortnite", level: 41 },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600">Error loading dashboard: {error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
@@ -235,7 +263,7 @@ export default function PlaySyncDashboard() {
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  {gameDistribution.map((entry, index) => (
+                  {gameDistribution.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -243,7 +271,7 @@ export default function PlaySyncDashboard() {
               </PieChart>
             </ResponsiveContainer>
             <div className="mt-4 space-y-2">
-              {gameDistribution.map((game, index) => (
+              {gameDistribution.map((game: any, index: number) => (
                 <div
                   key={index}
                   className="flex items-center justify-between text-sm"
@@ -367,6 +395,18 @@ export default function PlaySyncDashboard() {
               Find Players
             </button>
           </div>
+        </div>
+
+        {/* Test Sentry Error Reporting */}
+        <div className="mt-8 text-center">
+          <button
+            onClick={() => {
+              throw new Error("Test error for Sentry");
+            }}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+          >
+            Test Sentry Error
+          </button>
         </div>
       </div>
     </div>

@@ -3,6 +3,8 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import axiosApi from '../api/axios'
 import { ENDPOINTS } from '../api/endpoints'
+import { setUser } from '../utils/sentry'
+import * as Sentry from '@sentry/nextjs'
 
 interface User {
   id: string;
@@ -49,6 +51,13 @@ export const useAuthStore = create<AuthState>()(
             accessToken,
             isAuthenticated: true,
             isLoading: false,
+          })
+
+          // Set user in Sentry for error tracking
+          setUser({
+            id: user.id,
+            email: user.email,
+            username: user.email, // or user.name if available
           })
         } catch (err: any) {
           set({
@@ -125,6 +134,9 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
           error: undefined,
         })
+
+        // Clear user from Sentry
+        Sentry.setUser(null);
 
         if (!fromInterceptor) {
           // Optional: redirect or other client-side cleanup
