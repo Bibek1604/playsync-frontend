@@ -42,3 +42,13 @@ export const useLoginMutation = () => {
     },
   });
 };
+
+// Mutation for user registration
+export const useRegisterMutation = () => {
+  return useMutation({
+    mutationFn: async ({ email, password, fullName }: { email: string; password: string; fullName: string }) => {
+      const response = await axiosApi.post(ENDPOINTS.RegisterUser, { email, password, fullName });
+      return response.data;
+    },
+  });
+};
