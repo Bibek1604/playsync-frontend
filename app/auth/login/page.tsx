@@ -6,29 +6,41 @@ import {
   EyeOff,
   Mail,
   Lock,
-  User,
   Gamepad2,
   Users,
   Trophy,
   Target,
 } from "lucide-react";
+import { useAuthStore } from "../../../store/authStore";
 
 export default function PlaySyncLogin() {
-  const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
     email: "",
     password: "",
-    confirmPassword: "",
   });
   const router = useRouter();
+  const { login, isLoading, error } = useAuthStore();
 
-  const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    if (isLogin) {
-      router.push("/home/dashboard");
+    
+    // Basic validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+    if (!formData.password.trim()) {
+      alert("Please enter your password");
+      return;
+    }
+    
+    try {
+      await login(formData.email, formData.password);
+      router.push("/dashboard");
+    } catch (err) {
+      // Error is handled in store
     }
   };
 
@@ -137,39 +149,15 @@ export default function PlaySyncLogin() {
             {/* Header */}
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                {isLogin ? "Welcome Back!" : "Join PlaySync"}
+                Welcome Back!
               </h2>
               <p className="text-gray-600">
-                {isLogin
-                  ? "Enter your credentials to access your account"
-                  : "Create an account to start your gaming journey"}
+                Enter your credentials to access your account
               </p>
             </div>
 
             {/* Form */}
-            <div className="space-y-5">
-              {/* Name field (only for register) */}
-              {!isLogin && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Gamer Name
-                  </label>
-                  <div className="relative">
-                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                      <User className="text-gray-400 w-5 h-5" />
-                    </div>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition text-gray-800 placeholder-gray-400"
-                      placeholder="Enter your gamer name"
-                    />
-                  </div>
-                </div>
-              )}
-
+            <form onSubmit={handleSubmit} className="space-y-5">
               {/* Email field */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -186,6 +174,7 @@ export default function PlaySyncLogin() {
                     onChange={handleChange}
                     className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition text-gray-800 placeholder-gray-400"
                     placeholder="you@example.com"
+                    required
                   />
                 </div>
               </div>
@@ -206,6 +195,7 @@ export default function PlaySyncLogin() {
                     onChange={handleChange}
                     className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition text-gray-800 placeholder-gray-400"
                     placeholder="••••••••"
+                    required
                   />
                   <button
                     type="button"
@@ -221,55 +211,39 @@ export default function PlaySyncLogin() {
                 </div>
               </div>
 
-              {/* Confirm Password (only for register) */}
-              {!isLogin && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                      <Lock className="text-gray-400 w-5 h-5" />
-                    </div>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition text-gray-800 placeholder-gray-400"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                </div>
-              )}
+              {/* Remember me & Forgot password */}
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                  />
+                  <span className="text-sm text-gray-600">Remember me</span>
+                </label>
+                <button
+                  type="button"
+                  className="text-sm text-green-600 hover:text-green-700 font-semibold transition"
+                >
+                  Forgot password?
+                </button>
+              </div>
 
-              {/* Remember me & Forgot password (only for login) */}
-              {isLogin && (
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                    />
-                    <span className="text-sm text-gray-600">Remember me</span>
-                  </label>
-                  <button
-                    type="button"
-                    className="text-sm text-green-600 hover:text-green-700 font-semibold transition"
-                  >
-                    Forgot password?
-                  </button>
+              {/* Error message */}
+              {error && (
+                <div className="text-red-600 text-sm text-center">
+                  {error}
                 </div>
               )}
 
               {/* Submit button */}
               <button
-                onClick={handleSubmit}
-                className="w-full bg-linear-to-r from-green-600 to-emerald-600 text-white py-4 rounded-xl font-bold text-lg hover:from-green-700 hover:to-emerald-700 transition duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-linear-to-r from-green-600 to-emerald-600 text-white py-4 rounded-xl font-bold text-lg hover:from-green-700 hover:to-emerald-700 transition duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLogin ? "Sign In" : "Create Account"}
+                {isLoading ? "Signing In..." : "Sign In"}
               </button>
-            </div>
+            </form>
 
             {/* Divider */}
             <div className="relative my-8">
@@ -332,22 +306,19 @@ export default function PlaySyncLogin() {
                 </svg>
               </button>
             </div>
+          </div>
 
-            {/* Toggle between login and register */}
-            <div className="text-center">
-              <p className="text-gray-600">
-                {isLogin
-                  ? "Don't have an account?"
-                  : "Already have an account?"}
-                <button
-                  type="button"
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="ml-2 text-green-600 hover:text-green-700 font-bold transition"
-                >
-                  {isLogin ? "Sign Up Free" : "Sign In"}
-                </button>
-              </p>
-            </div>
+          {/* Sign Up Link */}
+          <div className="text-center mt-6">
+            <p className="text-gray-600">
+              Don't have an account?{" "}
+              <button
+                onClick={() => router.push("/auth/register")}
+                className="text-green-600 hover:text-green-700 font-semibold transition"
+              >
+                Sign Up
+              </button>
+            </p>
           </div>
 
           {/* Terms */}

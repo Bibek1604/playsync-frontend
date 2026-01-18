@@ -24,10 +24,11 @@ import {
   Cell,
 } from "recharts";
 import { useRouter } from "next/navigation";
+
 export default function PlaySyncDashboard() {
   const router = useRouter();
 
-  // Sample data for charts
+  // Static data for charts
   const weeklyData = [
     { day: "Mon", hours: 3, wins: 5 },
     { day: "Tue", hours: 4, wins: 7 },
@@ -112,7 +113,7 @@ export default function PlaySyncDashboard() {
                 JD
               </div>
               <button
-                onClick={() => router.push("/joingame")}
+                onClick={() => router.push("/games")}
                 className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 
                  text-white font-semibold rounded-xl 
                  shadow-md hover:shadow-lg 
@@ -235,7 +236,7 @@ export default function PlaySyncDashboard() {
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  {gameDistribution.map((entry, index) => (
+                  {gameDistribution.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -243,7 +244,7 @@ export default function PlaySyncDashboard() {
               </PieChart>
             </ResponsiveContainer>
             <div className="mt-4 space-y-2">
-              {gameDistribution.map((game, index) => (
+              {gameDistribution.map((game: any, index: number) => (
                 <div
                   key={index}
                   className="flex items-center justify-between text-sm"
@@ -367,6 +368,18 @@ export default function PlaySyncDashboard() {
               Find Players
             </button>
           </div>
+        </div>
+
+        {/* Test Sentry Error Reporting */}
+        <div className="mt-8 text-center">
+          <button
+            onClick={() => {
+              throw new Error("Test error for Sentry");
+            }}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+          >
+            Test Sentry Error
+          </button>
         </div>
       </div>
     </div>
