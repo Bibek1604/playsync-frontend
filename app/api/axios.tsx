@@ -1,10 +1,10 @@
-// lib/axios.ts
 import axios from 'axios'
 import { useAuthStore } from '../store/authStore'
+import { ENDPOINTS } from './endpoints'
 
 const axiosApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000',
-  withCredentials: true, // ← very important for httpOnly cookies
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api/v1',
+  withCredentials: true, 
   headers: {
     'Content-Type': 'application/json',
   },
@@ -21,7 +21,6 @@ const processQueue = (error: any = null) => {
   failedQueue = []
 }
 
-// Request interceptor - add access token from store/memory
 axiosApi.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().accessToken
@@ -33,7 +32,6 @@ axiosApi.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// Response interceptor - handle 401 + token refresh
 axiosApi.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -41,7 +39,6 @@ axiosApi.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // Queue the request until refresh finishes
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
         })
@@ -53,17 +50,13 @@ axiosApi.interceptors.response.use(
       isRefreshing = true
 
       try {
-        // Try to refresh token
-        await axiosApi.post('/refresh-token') // backend should set new refresh cookie + return new access
-
-        // After successful refresh → retry original request
+        // Call refresh endpoint which reads httpOnly refresh token cookie
+        await axiosApi.post(ENDPOINTS.RefreshToken)
         processQueue(null)
         return axiosApi(originalRequest)
       } catch (refreshError) {
-        // Refresh failed → full logout
         processQueue(refreshError)
-        // Trigger logout in store (we'll connect it later)
-        useAuthStore.getState().logout(true) // true = from interceptor
+        useAuthStore.getState().logout(true) 
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

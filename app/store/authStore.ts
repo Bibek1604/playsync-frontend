@@ -3,7 +3,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import axiosApi from '../api/axios'
 import { ENDPOINTS } from '../api/endpoints'
-import { setUser } from '../utils/sentry'
+import { setUser } from '../../utils/sentry'
 import * as Sentry from '@sentry/nextjs'
 
 interface User {
@@ -11,12 +11,11 @@ interface User {
   email: string;
   fullName: string;
   role: 'user' | 'admin';
-  // Add other user properties as needed, e.g., name, avatar, etc.
 }
 
 interface AuthState {
   user: User | null
-  accessToken: string | null    // ← kept in memory only
+  accessToken: string | null   
   isAuthenticated: boolean
   isLoading: boolean
   error?: string
@@ -38,7 +37,6 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: undefined,
 
-      // ── Very important: we keep accessToken in memory only! ──
       setAccessToken: (token: string) => set({ accessToken: token }),
 
       login: async (email, password) => {
@@ -47,45 +45,8 @@ export const useAuthStore = create<AuthState>()(
         try {
           console.log('AuthStore: Making API call to:', ENDPOINTS.LoginUser);
 
-          // For testing purposes, simulate API response when backend is not available
-          if (process.env.NODE_ENV === 'development') {
-            console.log('AuthStore: Development mode - simulating successful login');
-
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Mock successful response
-            const mockUser = {
-              id: 'mock-user-id-' + Date.now(),
-              email: email,
-              fullName: 'Mock User',
-              role: 'user'
-            };
-            const mockAccessToken = 'mock-access-token-' + Date.now();
-
-            console.log('AuthStore: Using mock response data:', { mockUser, hasAccessToken: !!mockAccessToken });
-
-            set({
-              user: mockUser,
-              accessToken: mockAccessToken,
-              isAuthenticated: true,
-              isLoading: false,
-            });
-
-            // Set user in Sentry for error tracking
-            setUser({
-              id: mockUser.id,
-              email: mockUser.email,
-              username: mockUser.fullName,
-            });
-
-            console.log('AuthStore: Mock login completed successfully');
-            return;
-          }
-
           const res = await axiosApi.post(ENDPOINTS.LoginUser, { email, password })
 
-          // Handle both nested and direct response structures
           const responseData = res.data.data || res.data
           const { user, accessToken } = responseData
 
@@ -96,7 +57,6 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           })
 
-          // Set user in Sentry for error tracking
           setUser({
             id: user.id,
             email: user.email,
@@ -106,12 +66,35 @@ export const useAuthStore = create<AuthState>()(
           console.error('AuthStore: Login failed with error:', err);
           console.error('AuthStore: Error response:', err.response?.data);
 
-          // In development, if it's a network error, provide helpful message
           if (process.env.NODE_ENV === 'development' && !err.response) {
+            console.log('AuthStore: Development mode - simulating login (backend not running)');
+
+            // Simulate successful login with mock data
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            const mockUser = {
+              id: 'dev-user-123',
+              email: email,
+              fullName: 'Development User',
+              role: 'user' as const,
+            };
+            const mockAccessToken = 'dev-mock-token-123';
+
             set({
+              user: mockUser,
+              accessToken: mockAccessToken,
+              isAuthenticated: true,
               isLoading: false,
-              error: 'Backend server not running. Please start the backend server on http://localhost:5000'
-            })
+            });
+
+            setUser({
+              id: mockUser.id,
+              email: mockUser.email,
+              username: mockUser.fullName,
+            });
+
+            console.log('AuthStore: Mock login simulated successfully');
+            return;
           } else {
             set({
               isLoading: false,
@@ -128,60 +111,39 @@ export const useAuthStore = create<AuthState>()(
         try {
           console.log('AuthStore: Making API call to:', ENDPOINTS.RegisterUser);
 
-          // For testing purposes, simulate API response when backend is not available
           if (process.env.NODE_ENV === 'development') {
-            console.log('AuthStore: Development mode - simulating successful registration');
+            console.log('AuthStore: Development mode - simulating registration (no auto-login)');
 
-            // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // Mock successful response
-            const mockUser = {
-              id: 'mock-user-id-' + Date.now(),
-              email: data.email,
-              fullName: data.fullName,
-              role: 'user'
-            };
-            const mockAccessToken = 'mock-access-token-' + Date.now();
-
-            console.log('AuthStore: Using mock response data:', { mockUser, hasAccessToken: !!mockAccessToken });
-
+            // Simulate registration success only; do not auto-login
             set({
-              user: mockUser,
-              accessToken: mockAccessToken,
-              isAuthenticated: true,
               isLoading: false,
             });
 
-            console.log('AuthStore: Mock registration completed successfully');
+            console.log('AuthStore: Mock registration simulated successfully');
             return;
           }
 
           const res = await axiosApi.post(ENDPOINTS.RegisterUser, data)
           console.log('AuthStore: API response received:', res);
 
-          // Handle both nested and direct response structures
           const responseData = res.data.data || res.data
           console.log('AuthStore: Processed response data:', responseData);
-          const { user, accessToken } = responseData
 
-          console.log('AuthStore: Setting user data:', { user, hasAccessToken: !!accessToken });
+          // Do NOT auto-login after registration. Backend should return tokens only on login.
           set({
-            user,
-            accessToken,
-            isAuthenticated: true,
             isLoading: false,
           })
 
-          console.log('AuthStore: Registration completed successfully');
+          console.log('AuthStore: Registration completed successfully (user not logged in)');
         } catch (err: any) {
           console.error('AuthStore: Registration failed with error:', err);
           console.error('AuthStore: Error response:', err.response?.data);
 
-          // In development, if it's a network error, provide helpful message
           if (process.env.NODE_ENV === 'development' && !err.response) {
             set({
-              isLoading: false,
+              isLoading: false, 
               error: 'Backend server not running. Please start the backend server on http://localhost:5000'
             })
           } else {
@@ -199,7 +161,6 @@ export const useAuthStore = create<AuthState>()(
         try {
           const res = await axiosApi.post(ENDPOINTS.RegisterAdmin, data)
 
-          // Handle both nested and direct response structures
           const responseData = res.data.data || res.data
           const { user, accessToken } = responseData
 
@@ -232,8 +193,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: async (fromInterceptor = false) => {
-        // Optional: call logout endpoint if you have one
-        // await axiosApi.post('/logout')
+
 
         set({
           user: null,
@@ -242,21 +202,21 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
           error: undefined,
         })
-
-        // Clear user from Sentry
         Sentry.setUser(null);
 
         if (!fromInterceptor) {
-          // Optional: redirect or other client-side cleanup
         }
       },
     }),
     {
       name: 'auth-storage',
+      // Persist auth state including accessToken to localStorage (per user request)
+      // NOTE: persisting tokens in localStorage is less secure (XSS risk).
+      // Use only for temporary/dev purposes.
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
-        // NEVER persist accessToken!
+        accessToken: state.accessToken,
       }),
     }
   )

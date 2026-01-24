@@ -1,32 +1,28 @@
-// api/queries.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosApi from './axios';
 import { ENDPOINTS } from './endpoints';
 
-// Example query hook for fetching user profile
 export const useUserProfile = (userId?: string) => {
   return useQuery({
     queryKey: ['user', userId],
     queryFn: async () => {
-      const response = await axiosApi.get(`/user/${userId}`);
+      const response = await axiosApi.get(`${ENDPOINTS.UserProfile}/${userId}`);
       return response.data;
     },
-    enabled: !!userId, // Only run if userId is provided
+    enabled: !!userId,
   });
 };
 
-// Example query hook for fetching games
 export const useGames = () => {
   return useQuery({
     queryKey: ['games'],
     queryFn: async () => {
-      const response = await axiosApi.get('/games');
+      const response = await axiosApi.get(ENDPOINTS.Games);
       return response.data;
     },
   });
 };
 
-// Mutation for login (though you might keep this in store)
 export const useLoginMutation = () => {
   const queryClient = useQueryClient();
 
@@ -36,14 +32,11 @@ export const useLoginMutation = () => {
       return response.data;
     },
     onSuccess: (data) => {
-      // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      // You can also update auth store here if needed
     },
   });
 };
 
-// Mutation for user registration
 export const useRegisterMutation = () => {
   return useMutation({
     mutationFn: async ({ email, password, fullName }: { email: string; password: string; fullName: string }) => {

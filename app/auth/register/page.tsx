@@ -1,349 +1,146 @@
-"use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Gamepad2, Check } from "lucide-react";
-import { useAuthStore } from "../../../store/authStore";
+"use client"
+import React, { useState } from 'react';
+import { CheckCircle2, Zap, Globe, Shield } from 'lucide-react';
+import Link from 'next/link';
+import { useAuthStore } from '../../store/authStore';
+import { useRouter } from 'next/navigation';
 
-export default function RegisterPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
-  const [acceptTerms, setAcceptTerms] = useState(false);
-  const router = useRouter();
+const features = [
+  { icon: <Zap size={18} />, title: "Real-time Syncing", desc: "No lag, pure performance." },
+  { icon: <Globe size={18} />, title: "Global Access", desc: "Sync from anywhere." },
+  { icon: <Shield size={18} />, title: "Enterprise Security", desc: "Your data is encrypted." },
+];
+
+export default function EnhancedRegisterPage() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const { registerUser, isLoading, error } = useAuthStore();
+  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Registration validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      alert("Please enter a valid email address");
-      return;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
-      return;
-    }
-    if (formData.password.length < 6) {
-      alert("Password must be at least 6 characters long");
-      return;
-    }
-    if (!acceptTerms) {
-      alert("Please accept the Terms and Conditions");
-      return;
-    }
-
+    const fullName = `${firstName} ${lastName}`.trim();
     try {
-      console.log('Attempting registration with:', {
-        email: formData.email,
-        fullName: formData.fullName,
-        passwordLength: formData.password.length
-      });
-
-      await registerUser({
-        email: formData.email,
-        password: formData.password,
-        fullName: formData.fullName
-      });
-
-      console.log('Registration successful, redirecting to login page');
-      router.push("/auth/login");
-    } catch (err) {
-      console.error('Registration failed:', err);
+      await registerUser({ email, password, fullName });
+      router.push('/dashboard');
+    } catch {
       // Error handled in store
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex">
-      {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-green-600 to-emerald-700 p-12 flex-col justify-between relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-20 right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-
-        <div className="relative z-10">
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-16">
-            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-2xl">
-              <Gamepad2 className="w-8 h-8 text-green-600" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-white">PlaySync</h1>
-              <p className="text-green-100 text-sm">Connect. Play. Win.</p>
-            </div>
-          </div>
-
-          {/* Features */}
-          <div className="space-y-8">
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shrink-0 shadow-lg">
-                <Check className="w-7 h-7 text-white" />
+    <div className="min-h-screen bg-white flex flex-col md:flex-row">
+      {/* Left Side: Brand & Social Proof */}
+      <div className="hidden md:flex md:w-1/2 bg-emerald-500 p-16 flex-col justify-between relative overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-emerald-400 rounded-full blur-3xl opacity-50" />
+        
+        <div className="z-10">
+          <h2 className="text-white text-4xl font-black mb-6">Start Syncing Your <br />World with Us.</h2>
+          <div className="space-y-6 mt-12">
+            {features.map((f, i) => (
+              <div key={i} className="flex gap-4 items-start bg-white/10 p-5 rounded-3xl border border-white/20 backdrop-blur-md">
+                <div className="p-2 bg-white rounded-xl text-emerald-600">{f.icon}</div>
+                <div>
+                  <h4 className="text-white font-bold">{f.title}</h4>
+                  <p className="text-emerald-50 text-sm opacity-80">{f.desc}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-white mb-2">
-                  Join the Community
-                </h3>
-                <p className="text-green-100">
-                  Create your account and start connecting with gamers worldwide
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shrink-0 shadow-lg">
-                <User className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white mb-2">
-                  Personal Profile
-                </h3>
-                <p className="text-green-100">
-                  Build your gaming profile and showcase your achievements
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shrink-0 shadow-lg">
-                <Gamepad2 className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white mb-2">
-                  Start Gaming
-                </h3>
-                <p className="text-green-100">
-                  Access exclusive games and connect with players instantly
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* Bottom Stats */}
-        <div className="relative z-10 grid grid-cols-3 gap-6">
-          <div className="text-center">
-            <p className="text-4xl font-bold text-white mb-1">500K+</p>
-            <p className="text-green-100 text-sm">Active Players</p>
-          </div>
-          <div className="text-center">
-            <p className="text-4xl font-bold text-white mb-1">2M+</p>
-            <p className="text-green-100 text-sm">Matches Made</p>
-          </div>
-          <div className="text-center">
-            <p className="text-4xl font-bold text-white mb-1">150+</p>
-            <p className="text-green-100 text-sm">Countries</p>
-          </div>
+        <div className="z-10">
+          <p className="text-emerald-100 font-medium">© 2026 PLAYSYNC Platform. All rights reserved.</p>
         </div>
       </div>
 
-      {/* Right Side - Registration Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
+      {/* Right Side: Register Form */}
+      <div className="flex-1 flex items-center justify-center p-8 md:p-16">
         <div className="w-full max-w-md">
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Gamepad2 className="w-7 h-7 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-              PlaySync
-            </h1>
+          <div className="mb-10">
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight">Sign Up</h1>
+            <p className="text-gray-500 mt-2 font-medium">Join 2,000+ users syncing today.</p>
           </div>
 
-          {/* Form Card */}
-          <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10">
-            {/* Header */}
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                Create Account
-              </h2>
-              <p className="text-gray-600">
-                Join PlaySync and start your gaming journey
-              </p>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Full Name field */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Full Name
-                </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                    <User className="text-gray-400 w-5 h-5" />
-                  </div>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition text-gray-800 placeholder-gray-400"
-                    placeholder="John Doe"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Email field */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                    <Mail className="text-gray-400 w-5 h-5" />
-                  </div>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition text-gray-800 placeholder-gray-400"
-                    placeholder="you@example.com"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Password field */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                    <Lock className="text-gray-400 w-5 h-5" />
-                  </div>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition text-gray-800 placeholder-gray-400"
-                    placeholder="••••••••"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Confirm Password field */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                    <Lock className="text-gray-400 w-5 h-5" />
-                  </div>
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition text-gray-800 placeholder-gray-400"
-                    placeholder="••••••••"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Terms and Conditions */}
-              <div className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  id="acceptTerms"
-                  checked={acceptTerms}
-                  onChange={(e) => setAcceptTerms(e.target.checked)}
-                  className="mt-1 w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">First Name</label>
+                <input 
+                  type="text" 
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all" 
+                  placeholder="John" 
                   required
                 />
-                <label htmlFor="acceptTerms" className="text-sm text-gray-600 leading-relaxed">
-                  I agree to the{" "}
-                  <button className="text-green-600 hover:underline font-medium">
-                    Terms of Service
-                  </button>{" "}
-                  and{" "}
-                  <button className="text-green-600 hover:underline font-medium">
-                    Privacy Policy
-                  </button>
-                </label>
               </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Last Name</label>
+                <input 
+                  type="text" 
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all" 
+                  placeholder="Doe" 
+                  required
+                />
+              </div>
+            </div>
 
-              {/* Error message */}
-              {error && (
-                <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg">
-                  {error}
-                </div>
-              )}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Work Email</label>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all" 
+                placeholder="john@company.com" 
+                required
+              />
+            </div>
 
-              {/* Submit button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-xl font-bold text-lg hover:from-green-700 hover:to-emerald-700 transition duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-              >
-                {isLoading ? "Creating Account..." : "Create Account"}
-                <ArrowRight className="w-5 h-5 inline ml-2" />
-              </button>
-            </form>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Password</label>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all" 
+                placeholder="••••••••" 
+                required
+              />
+              {/* Password Strength Indicator */}
+              <div className="flex gap-1 mt-2 px-1">
+                <div className="h-1 flex-1 bg-emerald-500 rounded-full" />
+                <div className="h-1 flex-1 bg-emerald-500 rounded-full" />
+                <div className="h-1 flex-1 bg-gray-100 rounded-full" />
+                <div className="h-1 flex-1 bg-gray-100 rounded-full" />
+              </div>
+            </div>
 
-            {/* Sign In Link */}
-            <div className="text-center mt-6">
-              <p className="text-gray-600">
-                Already have an account?{" "}
-                <button
-                  onClick={() => router.push("/auth/login")}
-                  className="text-green-600 hover:text-green-700 font-semibold transition"
-                >
-                  Sign In
-                </button>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+
+            <div className="flex items-center gap-3 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
+              <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
+              <p className="text-[11px] text-gray-600 leading-tight font-medium">
+                By signing up, you agree to our <span className="text-emerald-600 underline">Data Privacy Policy</span> and automated syncing terms.
               </p>
             </div>
-          </div>
 
-          {/* Terms */}
-          <p className="text-center text-gray-500 text-sm mt-6">
-            By creating an account, you agree to PlaySync{" "}
-            <button className="text-green-600 hover:underline font-medium">
-              Terms of Service
-            </button>{" "}
-            and{" "}
-            <button className="text-green-600 hover:underline font-medium">
-              Privacy Policy
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full py-4 bg-gray-900 hover:bg-black disabled:bg-gray-500 text-white font-bold rounded-2xl shadow-xl transition-all active:scale-[0.98] mt-4"
+            >
+              {isLoading ? 'Creating Account...' : 'Create My Account'}
             </button>
+          </form>
+
+          <p className="mt-8 text-center text-sm font-medium text-gray-500">
+            Already syncing? <Link href="/auth/login" className="text-emerald-600 font-bold hover:underline">Log in</Link>
           </p>
         </div>
       </div>
