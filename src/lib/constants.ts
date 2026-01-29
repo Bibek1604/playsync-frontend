@@ -2,16 +2,18 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000
 
 export const ENDPOINTS = {
     AUTH: {
-        LOGIN: '/auth/login',
-        REGISTER: '/auth/register/user',
-        REFRESH: '/auth/refresh-token',
-        LOGOUT: '/auth/logout',
-        ME: '/auth/me', // Assuming there is one, or we use user profile
+        LOGIN: '/api/v1/auth/login',
+        REGISTER: '/api/v1/auth/register/user',
+        REFRESH: '/api/v1/auth/refresh-token',
+        LOGOUT: '/api/v1/auth/logout',
+        ME: '/api/v1/auth/me',
     },
-    USER: {
-        PROFILE: '/api/v1/profile',
+    PROFILE: {
+        GET: '/api/v1/profile',
+        UPDATE: '/api/v1/profile',
+        CHANGE_PASSWORD: '/api/v1/profile/change-password',
     },
     GAMES: {
-        LIST: '/games',
+        LIST: '/api/v1/games',
     },
 };

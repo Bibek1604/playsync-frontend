@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_URL } from './constants';
+import { API_URL, ENDPOINTS } from './constants';
 
 const apiClient = axios.create({
     baseURL: API_URL,
@@ -73,7 +73,7 @@ apiClient.interceptors.response.use(
             try {
                 // Manual refresh call to avoid interceptors
                 const response = await axios.post(
-                    `${API_URL}/auth/refresh-token`,
+                    `${API_URL}${ENDPOINTS.AUTH.REFRESH}`,
                     {},
                     { withCredentials: true }
                 );

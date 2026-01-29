@@ -18,19 +18,17 @@ export default function Header() {
   }, [])
 
   return (
-    <header 
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ease-in-out ${
-        isScrolled 
-          ? "py-4 px-4 sm:px-8" 
-          : "py-8 px-6 sm:px-12"
-      }`}
-    >
-      <nav 
-        className={`max-w-7xl mx-auto transition-all duration-500 ease-in-out rounded-[2rem] ${
-          isScrolled 
-            ? "bg-white/70 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.04)] px-6 py-3" 
-            : "bg-transparent px-0 py-0"
+    <header
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ease-in-out ${isScrolled
+        ? "py-4 px-4 sm:px-8"
+        : "py-8 px-6 sm:px-12"
         }`}
+    >
+      <nav
+        className={`max-w-7xl mx-auto transition-all duration-500 ease-in-out rounded-[2rem] ${isScrolled
+          ? "bg-white/70 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.04)] px-6 py-3"
+          : "bg-transparent px-0 py-0"
+          }`}
       >
         <div className="flex items-center justify-between">
           {/* --- Brand Identity --- */}
@@ -53,9 +51,9 @@ export default function Header() {
           {/* --- Desktop Navigation --- */}
           <div className="hidden lg:flex items-center gap-10">
             {["Find Squad", "Rankings", "Tournaments", "Intelligence"].map((item) => (
-              <Link 
-                key={item} 
-                href={`#${item.toLowerCase()}`} 
+              <Link
+                key={item}
+                href={`#${item.toLowerCase()}`}
                 className="relative text-[13px] font-bold text-slate-500 hover:text-emerald-600 transition-colors uppercase tracking-widest group"
               >
                 {item}
@@ -69,17 +67,17 @@ export default function Header() {
             <button className="text-[13px] font-bold text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-widest">
               Login
             </button>
-            <Link 
-              href="/join" 
+            <Link
+              href="/dashboard"
               className="group flex items-center gap-2 px-7 py-3 rounded-2xl bg-slate-900 text-white text-[13px] font-bold uppercase tracking-widest hover:bg-emerald-600 hover:shadow-2xl hover:shadow-emerald-200 transition-all duration-300"
             >
-              Get Started
+              Move to dashboard
               <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
           {/* --- Mobile Menu Toggle --- */}
-          <button 
+          <button
             className="lg:hidden p-2.5 rounded-xl bg-slate-50 text-slate-900 border border-slate-200"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
@@ -88,16 +86,15 @@ export default function Header() {
         </div>
 
         {/* --- Mobile Full-Screen Menu --- */}
-        <div 
-          className={`absolute top-[110%] left-4 right-4 bg-white border border-slate-100 rounded-[2.5rem] shadow-2xl p-8 lg:hidden transition-all duration-500 origin-top ${
-            mobileMenuOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"
-          }`}
+        <div
+          className={`absolute top-[110%] left-4 right-4 bg-white border border-slate-100 rounded-[2.5rem] shadow-2xl p-8 lg:hidden transition-all duration-500 origin-top ${mobileMenuOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"
+            }`}
         >
           <div className="flex flex-col gap-6">
             {["Find Squad", "Rankings", "Tournaments", "Intelligence"].map((item) => (
-              <Link 
-                key={item} 
-                href="#" 
+              <Link
+                key={item}
+                href="#"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-2xl font-black text-slate-900 flex justify-between items-center group"
               >

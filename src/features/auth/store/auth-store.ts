@@ -17,7 +17,7 @@ interface AuthState {
     register: (credentials: RegisterCredentials) => Promise<boolean>;
     logout: () => Promise<void>;
     fetchProfile: () => Promise<void>;
-    updateProfile: (data: Profile) => Promise<boolean>;
+    updateProfile: (data: Profile | FormData) => Promise<boolean>;
     clearAuth: () => void;
 }
 

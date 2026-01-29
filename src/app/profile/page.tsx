@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   User, MapPin, Globe, Gamepad2, Lock,
-  Linkedin, Github, Save, ArrowLeft, Camera
+  Save, ArrowLeft, Camera
 } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/auth-store';
 import { useRouter } from 'next/navigation';
@@ -14,19 +14,11 @@ export default function ProfilePage() {
 
   // Local state for the form
   const [formData, setFormData] = useState({
-    bio: '',
-    avatar: '',
-    location: '',
-    website: '',
-    phoneNumber: '',
+    fullName: '',
+    profilePicture: '',
+    place: '',
+    phone: '',
     favoriteGame: '',
-    oldPassword: '',
-    newPassword: '',
-    socialLinks: {
-      twitter: '',
-      linkedin: '',
-      github: ''
-    }
   });
 
   // Sync local state when profile is fetched from the store
@@ -37,47 +29,31 @@ export default function ProfilePage() {
   useEffect(() => {
     if (profile) {
       setFormData({
-        bio: profile.bio || '',
-        avatar: profile.avatar || '',
-        location: profile.location || '',
-        website: profile.website || '',
-        phoneNumber: profile.phoneNumber || '',
+        fullName: profile.fullName || '',
+        profilePicture: profile.profilePicture || '',
+        place: profile.place || '',
+        phone: profile.phone || '',
         favoriteGame: profile.favoriteGame || '',
-        oldPassword: '',
-        newPassword: '',
-        socialLinks: {
-          twitter: profile.socialLinks?.twitter || '',
-          linkedin: profile.socialLinks?.linkedin || '',
-          github: profile.socialLinks?.github || ''
-        }
       });
     }
   }, [profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await updateProfile(formData);
+    // Prepare FormData strictly for text fields update if needed, 
+    // but the store's updateProfile handles FormData or object. 
+    // Here we'll pass the object directly assuming the store handles it,
+    // or we might need to conform to what updateProfile expects.
+    // Based on previous files, updateProfile expects Profile | FormData.
+    const success = await updateProfile(formData as any);
     if (success) {
-      // Optional: Add a "Saved!" toast notification here
       console.log("Profile updated successfully");
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-
-    if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...(prev[parent as keyof typeof prev] as object),
-          [child]: value
-        }
-      }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -113,9 +89,9 @@ export default function ProfilePage() {
               <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
                 <div className="relative group">
                   <div className="w-24 h-24 rounded-2xl bg-green-100 border-2 border-white shadow-md overflow-hidden flex items-center justify-center">
-                    {formData.avatar ? (
+                    {formData.profilePicture ? (
                       <img
-                        src={formData.avatar}
+                        src={formData.profilePicture.startsWith('http') ? formData.profilePicture : `http://localhost:5000${formData.profilePicture}`}
                         alt="Preview"
                         className="w-full h-full object-cover"
                         onError={(e) => (e.currentTarget.src = 'https://ui-avatars.com/api/?name=User&background=dcfce7&color=166534')}
@@ -124,46 +100,29 @@ export default function ProfilePage() {
                       <User className="w-10 h-10 text-green-600" />
                     )}
                   </div>
-                  <div className="absolute -bottom-2 -right-2 p-1.5 bg-white rounded-lg shadow-sm border border-gray-200">
-                    <Camera className="w-4 h-4 text-gray-500" />
-                  </div>
                 </div>
 
                 <div className="flex-1 w-full text-sm">
-                  <label className="block font-medium text-gray-700 mb-1">Avatar Image URL</label>
+                  <label className="block font-medium text-gray-700 mb-1">Full Name</label>
                   <input
-                    type="url"
-                    name="avatar"
-                    value={formData.avatar}
+                    type="text"
+                    name="fullName"
+                    value={formData.fullName}
                     onChange={handleChange}
                     className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:bg-white outline-none transition-all"
-                    placeholder="https://images.com/your-photo.jpg"
                   />
                 </div>
               </div>
 
-              {/* Bio */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">About You</label>
-                <textarea
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleChange}
-                  rows={4}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:bg-white outline-none transition-all"
-                  placeholder="Share a bit about your journey..."
-                />
-              </div>
-
-              {/* Grid: Location & Website */}
+              {/* Grid: Location & Phone */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
-                      name="location"
-                      value={formData.location}
+                      name="place"
+                      value={formData.place}
                       onChange={handleChange}
                       className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
                       placeholder="City, Country"
@@ -175,8 +134,8 @@ export default function ProfilePage() {
                   <div className="relative">
                     <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
-                      name="phoneNumber"
-                      value={formData.phoneNumber}
+                      name="phone"
+                      value={formData.phone}
                       onChange={handleChange}
                       className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
                       placeholder="Phone number"
@@ -184,44 +143,21 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
 
-          {/* Section: Social & Gaming */}
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-              <h2 className="text-lg font-semibold text-gray-900">Connections & Interests</h2>
-            </div>
-
-            <div className="p-6 space-y-5">
+              {/* Favorite Game */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-purple-500" /> Old Password
-                </label>
-                <input
-                  type="password"
-                  name="oldPassword"
-                  value={formData.oldPassword}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-                  placeholder="Enter your old password"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Favorite Game</label>
+                <div className="relative">
+                  <Gamepad2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    name="favoriteGame"
+                    value={formData.favoriteGame}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                    placeholder="Your favorite game"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-purple-500" /> New Password
-                </label>
-                <input
-                  type="password"
-                  name="newPassword"
-                  value={formData.newPassword}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-                  placeholder="Enter new password"
-                />
-              </div>
-
-
             </div>
           </section>
 
@@ -256,18 +192,5 @@ export default function ProfilePage() {
   );
 }
 
-/** Helper Component for Social Inputs */
-function SocialInput({ icon, label, name, value, onChange }: any) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="w-8 flex justify-center">{icon}</div>
-      <input
-        name={name}
-        value={value}
-        onChange={onChange}
-        className="flex-1 px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 outline-none text-sm"
-        placeholder={`${label} URL`}
-      />
-    </div>
-  );
-}
+
+/** Helper Component for Social Inputs - Removed as it is no longer used */

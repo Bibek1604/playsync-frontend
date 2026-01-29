@@ -13,19 +13,12 @@ export interface AuthResponse {
 }
 
 export interface Profile {
-    bio?: string;
-    avatar?: string;
-    location?: string;
-    website?: string;
-    phoneNumber?: string;
+    fullName: string;
+    email: string;
+    phone?: string;
     favoriteGame?: string;
-    oldPassword?: string;
-    newPassword?: string;
-    socialLinks?: {
-        twitter: string;
-        linkedin: string;
-        github: string;
-    };
+    place?: string;
+    profilePicture?: string;
 }
 
 export interface Game {
