@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { 
-  User, MapPin, Globe, Gamepad2, Password,
-  Linkedin, Github, Save, ArrowLeft, Camera 
+import {
+  User, MapPin, Globe, Gamepad2, Lock,
+  Linkedin, Github, Save, ArrowLeft, Camera
 } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/auth-store';
 import { useRouter } from 'next/navigation';
@@ -18,7 +18,10 @@ export default function ProfilePage() {
     avatar: '',
     location: '',
     website: '',
+    phoneNumber: '',
     favoriteGame: '',
+    oldPassword: '',
+    newPassword: '',
     socialLinks: {
       twitter: '',
       linkedin: '',
@@ -38,7 +41,10 @@ export default function ProfilePage() {
         avatar: profile.avatar || '',
         location: profile.location || '',
         website: profile.website || '',
+        phoneNumber: profile.phoneNumber || '',
         favoriteGame: profile.favoriteGame || '',
+        oldPassword: '',
+        newPassword: '',
         socialLinks: {
           twitter: profile.socialLinks?.twitter || '',
           linkedin: profile.socialLinks?.linkedin || '',
@@ -59,7 +65,7 @@ export default function ProfilePage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    
+
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setFormData(prev => ({
@@ -94,7 +100,7 @@ export default function ProfilePage() {
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         <form onSubmit={handleSubmit} className="space-y-6">
-          
+
           {/* Section: Public Profile */}
           <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-6 border-b border-gray-100 bg-gray-50/50">
@@ -108,9 +114,9 @@ export default function ProfilePage() {
                 <div className="relative group">
                   <div className="w-24 h-24 rounded-2xl bg-green-100 border-2 border-white shadow-md overflow-hidden flex items-center justify-center">
                     {formData.avatar ? (
-                      <img 
-                        src={formData.avatar} 
-                        alt="Preview" 
+                      <img
+                        src={formData.avatar}
+                        alt="Preview"
                         className="w-full h-full object-cover"
                         onError={(e) => (e.currentTarget.src = 'https://ui-avatars.com/api/?name=User&background=dcfce7&color=166534')}
                       />
@@ -165,15 +171,15 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Number</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                   <div className="relative">
                     <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
-                      name="number"
-                      value={formData.website}
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
                       onChange={handleChange}
                       className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-                      placeholder="number"
+                      placeholder="Phone number"
                     />
                   </div>
                 </div>
@@ -186,30 +192,32 @@ export default function ProfilePage() {
             <div className="p-6 border-b border-gray-100 bg-gray-50/50">
               <h2 className="text-lg font-semibold text-gray-900">Connections & Interests</h2>
             </div>
-            
+
             <div className="p-6 space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                  <Password className="w-4 h-4 text-purple-500" /> oldpassword
+                  <Lock className="w-4 h-4 text-purple-500" /> Old Password
                 </label>
                 <input
-                  name="oldpassword"
-                  value={formData.favoriteGame}
+                  type="password"
+                  name="oldPassword"
+                  value={formData.oldPassword}
                   onChange={handleChange}
                   className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
                   placeholder="Enter your old password"
                 />
               </div>
-                            <div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                  <Password className="w-4 h-4 text-purple-500" /> New Password
+                  <Lock className="w-4 h-4 text-purple-500" /> New Password
                 </label>
                 <input
-                  name="newpassword"
-                  value={formData.favoriteGame}
+                  type="password"
+                  name="newPassword"
+                  value={formData.newPassword}
                   onChange={handleChange}
                   className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-                  placeholder="new password"
+                  placeholder="Enter new password"
                 />
               </div>
 

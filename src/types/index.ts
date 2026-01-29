@@ -17,7 +17,10 @@ export interface Profile {
     avatar?: string;
     location?: string;
     website?: string;
+    phoneNumber?: string;
     favoriteGame?: string;
+    oldPassword?: string;
+    newPassword?: string;
     socialLinks?: {
         twitter: string;
         linkedin: string;

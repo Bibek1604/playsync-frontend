@@ -1,4 +1,4 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export const ENDPOINTS = {
     AUTH: {
@@ -9,7 +9,7 @@ export const ENDPOINTS = {
         ME: '/auth/me', // Assuming there is one, or we use user profile
     },
     USER: {
-        PROFILE: '/profile',
+        PROFILE: '/api/v1/profile',
     },
     GAMES: {
         LIST: '/games',

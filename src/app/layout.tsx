@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import Header from "./layout/header";
-import Footer from "./layout/footer";
+import { Footer } from "./layout/Footer";
+import Header from "./layout/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,10 +15,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const poppins = Poppins({ 
-  subsets: ['latin'], 
-  weight: ['400', '500', '600', '700', '800', '900'],
-  variable: '--font-poppins',
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-poppins",
 });
 
 export const metadata: Metadata = {
@@ -36,12 +36,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} font-poppins antialiased flex min-h-screen flex-col bg-white`}
       >
-        <Header />
-        
         <main className="flex-grow">
-          <Providers>
-            {children}
-          </Providers>
+          <Providers>{children}</Providers>
         </main>
         <Footer />
       </body>

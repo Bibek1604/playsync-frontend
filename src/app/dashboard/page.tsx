@@ -1,390 +1,291 @@
 "use client";
+import React from "react";
 import {
-  Gamepad2,
-  Users,
-  Trophy,
-  Search,
-  Bell,
-  Settings,
-  LogOut,
-  Target,
-  Zap,
-  Award,
-} from "lucide-react";
-import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
-  YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
+  CartesianGrid,
 } from "recharts";
+import {
+  Bell,
+  Search,
+  Zap,
+  Target,
+  Award,
+  ArrowUpRight,
+  Filter,
+} from "lucide-react";
 
-import { useRouter } from "next/navigation";
+const chartData = [
+  { m: "Mon", v: 400 },
+  { m: "Tue", v: 800 },
+  { m: "Wed", v: 600 },
+  { m: "Thu", v: 1100 },
+  { m: "Fri", v: 900 },
+  { m: "Sat", v: 1400 },
+  { m: "Sun", v: 1200 },
+];
 
-import type { GameDistribution } from '@/types';
+function Sidebar() {
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState("Dashboard");
 
-export default function PlaySyncDashboard() {
-  const router = useRouter();
-
-  // Static data for charts
-  const weeklyData = [
-    { day: "Mon", hours: 3, wins: 5 },
-    { day: "Tue", hours: 4, wins: 7 },
-    { day: "Wed", hours: 2, wins: 3 },
-    { day: "Thu", hours: 5, wins: 8 },
-    { day: "Fri", hours: 6, wins: 10 },
-    { day: "Sat", hours: 8, wins: 12 },
-    { day: "Sun", hours: 7, wins: 9 },
-  ];
-
-  const gameDistribution = [
-    { name: "Valorant", value: 35, color: "#10b981" },
-    { name: "Apex Legends", value: 25, color: "#34d399" },
-    { name: "CS:GO", value: 20, color: "#6ee7b7" },
-    { name: "Fortnite", value: 15, color: "#a7f3d0" },
-    { name: "Others", value: 5, color: "#d1fae5" },
-  ];
-
-  const topPlayers = [
-    { rank: 1, name: "ShadowNinja", score: 2850, wins: 145, avatar: "🥇" },
-    { rank: 2, name: "ProGamer99", score: 2720, wins: 138, avatar: "🥈" },
-    { rank: 3, name: "EliteSniper", score: 2650, wins: 132, avatar: "🥉" },
-    { rank: 4, name: "QuickShot", score: 2580, wins: 128, avatar: "👤" },
-    { rank: 5, name: "TacticalKing", score: 2510, wins: 125, avatar: "👤" },
-    { rank: 6, name: "GameMaster", score: 2480, wins: 121, avatar: "👤" },
-    { rank: 7, name: "StealthMode", score: 2450, wins: 118, avatar: "👤" },
-    { rank: 8, name: "VictoryRush", score: 2420, wins: 115, avatar: "👤" },
-  ];
-
-  const activePlayers = [
-    { id: 1, name: "AlphaWolf", status: "online", game: "Valorant", level: 45 },
-    {
-      id: 2,
-      name: "BetaStrike",
-      status: "online",
-      game: "Apex Legends",
-      level: 38,
-    },
-    { id: 3, name: "GammaForce", status: "in-game", game: "CS:GO", level: 52 },
-    { id: 4, name: "DeltaRush", status: "online", game: "Fortnite", level: 41 },
+  const menuItems = [
+    { icon: Bell, label: "Dashboard", href: "/dashboard" },
+    { icon: Search, label: "Squad Finder", href: "/squads" },
+    { icon: Zap, label: "Tournaments", href: "/tournaments" },
+    { icon: Target, label: "Performance", href: "/analytics" },
+    { icon: Award, label: "Messages", href: "/messages", badge: "3" },
+    { icon: Filter, label: "Settings", href: "/settings" },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                <Gamepad2 className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-gray-800">PlaySync</span>
-            </div>
+    <aside
+      className={`bg-slate-50 border-r border-slate-100 transition-all duration-500 ease-in-out flex flex-col min-h-screen ${
+        isCollapsed ? "w-20" : "w-64"
+      }`}
+    >
+      {/* --- Header / Logo --- */}
+      <div className="h-20 flex items-center px-6 mb-4">
+        <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-100 shrink-0">
+          <span className="text-xl font-black">P</span>
+        </div>
+        {!isCollapsed && (
+          <span className="text-xl font-black tracking-tighter uppercase text-slate-900">
+            PLAY<span className="text-emerald-600">SYNC</span>
+          </span>
+        )}
+      </div>
 
-            {/* Search Bar */}
-            <div className="hidden md:flex flex-1 max-w-md mx-8">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search players, games..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                />
-              </div>
-            </div>
+      {/* --- Collapse Toggle --- */}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="absolute -right-3 top-24 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-emerald-600 shadow-sm z-50"
+      >
+        {isCollapsed ? ">" : "<"}
+      </button>
 
-            {/* Right Actions */}
-            <div className="flex items-center gap-4">
-              <button className="relative p-2 text-gray-600 hover:text-green-600 transition">
-                <Bell className="w-6 h-6" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              <button
-                onClick={() => router.push('/profile')}
-                className="p-2 text-gray-600 hover:text-green-600 transition"
-              >
-                <Settings className="w-6 h-6" />
-              </button>
-              <button className="p-2 text-gray-600 hover:text-red-600 transition">
-                <LogOut className="w-6 h-6" />
-              </button>
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold">
-                JD
+      {/* --- Navigation Items --- */}
+      <nav className="flex-1 px-4 space-y-2">
+        {menuItems.map((item) => (
+          <a
+            key={item.label}
+            href={item.href}
+            onClick={() => setActiveTab(item.label)}
+            className={`flex items-center gap-4 px-3 py-3.5 rounded-2xl transition-all relative group ${
+              activeTab === item.label
+                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-100"
+                : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"
+            }`}
+          >
+            <item.icon
+              size={22}
+              className={`${activeTab === item.label ? "text-white" : "group-hover:scale-110 transition-transform"}`}
+            />
+
+            {!isCollapsed && (
+              <span className="text-sm font-bold tracking-tight flex-1">
+                {item.label}
+              </span>
+            )}
+
+            {/* Notification Badge */}
+            {item.badge && !isCollapsed && (
+              <span className="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                {item.badge}
+              </span>
+            )}
+
+            {/* Tooltip for Collapsed State */}
+            {isCollapsed && (
+              <div className="absolute left-16 bg-slate-900 text-white text-[10px] font-black px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity uppercase tracking-widest whitespace-nowrap">
+                {item.label}
               </div>
-              <button
-                onClick={() => router.push("/games")}
-                className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 
-                 text-white font-semibold rounded-xl 
-                 shadow-md hover:shadow-lg 
-                 hover:scale-105 transition-all"
-              >
-                🎮 Join Game
-              </button>
+            )}
+          </a>
+        ))}
+      </nav>
+
+      {/* --- Bottom Section: Player Card --- */}
+      <div className="p-4 border-t border-slate-50">
+        {!isCollapsed ? (
+          <div className="bg-slate-900 rounded-[1.5rem] p-4 text-white relative overflow-hidden group cursor-pointer">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/20 rounded-full blur-2xl group-hover:bg-emerald-500/40 transition-all" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-slate-950">
+                  <Zap size={16} fill="currentColor" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
+                    Pro Active
+                  </p>
+                  <p className="text-xs font-bold">Ghost_Main</p>
+                </div>
+              </div>
+              <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                <div className="bg-emerald-500 h-full w-[70%]" />
+              </div>
+              <p className="text-[9px] font-bold text-slate-400 mt-2 uppercase tracking-widest">
+                70% to Elite Rank
+              </p>
             </div>
           </div>
+        ) : (
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-emerald-500 cursor-pointer hover:bg-emerald-600 hover:text-white transition-all">
+              <Zap size={20} />
+            </div>
+          </div>
+        )}
+
+        <button
+          className={`w-full flex items-center gap-4 px-3 py-4 mt-4 text-slate-400 hover:text-red-500 transition-colors ${isCollapsed ? "justify-center" : ""}`}
+        >
+          <span className="text-sm font-bold">Logout</span>
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <div className="flex-1 ml-72 p-10 bg-[#FBFCFE] font-poppins min-h-screen">
+      {/* Header */}
+      <header className="flex items-center justify-between mb-12">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-semibold text-slate-900 tracking-tight">
+            Welcome, Alex
+          </h1>
+          <p className="text-slate-500 text-sm font-medium">
+            Your squad is waiting for you.{" "}
+            <span className="text-emerald-600 font-semibold cursor-pointer underline-offset-4 hover:underline">
+              Join Match
+            </span>
+          </p>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="relative group">
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors"
+              size={18}
+            />
+            <input
+              type="text"
+              placeholder="Search tournaments..."
+              className="pl-12 pr-6 py-3 bg-white border border-slate-200/60 rounded-2xl outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all text-sm w-72 shadow-sm"
+            />
+          </div>
+          <button className="p-3 bg-white border border-slate-200/60 rounded-2xl text-slate-400 hover:text-emerald-600 hover:border-emerald-100 transition-all relative shadow-sm">
+            <Bell size={20} />
+            <span className="absolute top-3 right-3 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+          </button>
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-green-600" />
-              </div>
-              <span className="text-green-600 text-sm font-semibold">+12%</span>
-            </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">
-              Active Players
-            </h3>
-            <p className="text-3xl font-bold text-gray-800">1,284</p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <Trophy className="w-6 h-6 text-emerald-600" />
-              </div>
-              <span className="text-emerald-600 text-sm font-semibold">
-                +8%
-              </span>
-            </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">
-              Total Wins
-            </h3>
-            <p className="text-3xl font-bold text-gray-800">845</p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Target className="w-6 h-6 text-blue-600" />
-              </div>
-              <span className="text-blue-600 text-sm font-semibold">+15%</span>
-            </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Win Rate</h3>
-            <p className="text-3xl font-bold text-gray-800">68%</p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Zap className="w-6 h-6 text-purple-600" />
-              </div>
-              <span className="text-purple-600 text-sm font-semibold">+5%</span>
-            </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">
-              Hours Played
-            </h3>
-            <p className="text-3xl font-bold text-gray-800">235h</p>
-          </div>
-        </div>
-
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Weekly Performance */}
-          <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">
-              Weekly Performance
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="day" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#fff",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="hours"
-                  stroke="#10b981"
-                  strokeWidth={3}
-                  dot={{ fill: "#10b981", r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="wins"
-                  stroke="#34d399"
-                  strokeWidth={3}
-                  dot={{ fill: "#34d399", r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Game Distribution */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">
-              Game Distribution
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={gameDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {gameDistribution.map((entry: GameDistribution, index: number) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="mt-4 space-y-2">
-              {gameDistribution.map((game: GameDistribution, index: number) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: game.color }}
-                    ></div>
-                    <span className="text-gray-600">{game.name}</span>
-                  </div>
-                  <span className="font-semibold text-gray-800">
-                    {game.value}%
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Leaderboard and Active Players */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Top Players Leaderboard */}
-          <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <Award className="w-5 h-5 text-green-600" />
-                Top Players Leaderboard
+      {/* Main Grid */}
+      <div className="grid grid-cols-12 gap-8">
+        {/* Performance Chart Box */}
+        <div className="col-span-12 lg:col-span-8 bg-white border border-slate-100 rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.01)]">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">
+                Performance Trend
               </h3>
-              <button className="text-sm text-green-600 hover:text-green-700 font-semibold">
-                View All
-              </button>
+              <p className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-widest">
+                Skill Evolution
+              </p>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
-                      Rank
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">
-                      Player
-                    </th>
-                    <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">
-                      Score
-                    </th>
-                    <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">
-                      Wins
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topPlayers.map((player) => (
-                    <tr
-                      key={player.rank}
-                      className="border-b border-gray-100 hover:bg-green-50 transition"
-                    >
-                      <td className="py-4 px-4">
-                        <span className="text-2xl">{player.avatar}</span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className="font-semibold text-gray-800">
-                          {player.name}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        <span className="text-green-600 font-bold">
-                          {player.score}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        <span className="text-gray-600">{player.wins}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Active Players */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-800 mb-6">
-              Active Players
-            </h3>
-            <div className="space-y-4">
-              {activePlayers.map((player) => (
-                <div
-                  key={player.id}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-green-50 transition"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                        {player.name.substring(0, 2)}
-                      </div>
-                      <div
-                        className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${player.status === "online"
-                            ? "bg-green-500"
-                            : "bg-yellow-500"
-                          }`}
-                      ></div>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-800 text-sm">
-                        {player.name}
-                      </p>
-                      <p className="text-xs text-gray-500">{player.game}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-semibold text-green-600">
-                      Lv {player.level}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button className="w-full mt-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-emerald-700 transition">
-              Find Players
+            <button className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-100 transition-colors">
+              <Filter size={14} /> This Week
             </button>
           </div>
+          <div className="h-[320px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="chartColor" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#F1F5F9"
+                />
+                <XAxis
+                  dataKey="m"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 500 }}
+                  dy={15}
+                />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: "16px",
+                    border: "none",
+                    boxShadow: "0 10px 40px rgba(0,0,0,0.08)",
+                    fontFamily: "Poppins",
+                  }}
+                  cursor={{ stroke: "#10b981", strokeWidth: 2 }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="v"
+                  stroke="#10b981"
+                  strokeWidth={3}
+                  fill="url(#chartColor)"
+                  dot={{ fill: "#10b981", r: 4 }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {/* Test Sentry Error Reporting */}
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => {
-              throw new Error("Test error for Sentry");
-            }}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-          >
-            Test Sentry Error
-          </button>
+        {/* Vertical Stat Cards */}
+        <div className="col-span-12 lg:col-span-4 space-y-8">
+          <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden group shadow-xl shadow-slate-200">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl translate-x-10 -translate-y-10" />
+            <Target size={32} className="text-emerald-400 mb-6" />
+            <h4 className="text-xs font-medium text-slate-400 uppercase tracking-widest">
+              Headshot %
+            </h4>
+            <div className="flex items-baseline gap-2 mt-2">
+              <p className="text-4xl font-semibold">62.5</p>
+              <span className="text-emerald-400 text-sm font-semibold">
+                +4.2%
+              </span>
+            </div>
+            <button className="mt-8 flex items-center gap-2 text-xs font-bold text-emerald-400 hover:text-white transition-colors">
+              ANALYZE MORE <ArrowUpRight size={14} />
+            </button>
+          </div>
+
+          <div className="bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-500">
+                <Zap size={24} fill="currentColor" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-slate-900">
+                  Win Rate
+                </h4>
+                <p className="text-xs font-medium text-slate-400">
+                  Competitive
+                </p>
+              </div>
+            </div>
+            <p className="text-3xl font-semibold text-slate-900">74%</p>
+            <div className="w-full bg-slate-100 h-2 rounded-full mt-4 overflow-hidden">
+              <div className="bg-orange-500 h-full w-[74%] rounded-full shadow-[0_0_12px_rgba(249,115,22,0.4)]" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
