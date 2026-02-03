@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  // Create a client for each request (SSR)
   const [queryClient] = useState(() => new QueryClient());
 
   return (

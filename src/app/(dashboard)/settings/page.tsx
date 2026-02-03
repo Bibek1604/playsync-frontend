@@ -36,6 +36,9 @@ export default function SettingsPage() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Active Tab State
+    const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
+
     // Fetch profile on mount
     useEffect(() => {
         fetchProfile();
@@ -172,215 +175,239 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* Sidebar Navigation for Settings */}
                 <div className="lg:col-span-3 space-y-2">
-                    <button className="w-full flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-sm transition-colors">
+                    <button
+                        onClick={() => setActiveTab('profile')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-colors ${activeTab === 'profile'
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "text-slate-500 hover:bg-slate-50"
+                            }`}
+                    >
                         <User size={18} /> Profile
                     </button>
-                    {/* Security, Notifications, Billing removed as per request */}
+                    <button
+                        onClick={() => setActiveTab('security')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-colors ${activeTab === 'security'
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "text-slate-500 hover:bg-slate-50"
+                            }`}
+                    >
+                        <Lock size={18} /> Security
+                    </button>
                 </div>
 
                 {/* Main Content Area */}
                 <div className="lg:col-span-9 space-y-6">
 
-                    {/* Profile Picture Section */}
-                    <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-6">
-                        <div className="relative group">
-                            <div className="w-24 h-24 bg-slate-900 rounded-full flex items-center justify-center text-emerald-500 text-3xl font-black border-4 border-white shadow-lg overflow-hidden">
-                                {previewUrl ? (
-                                    <img src={previewUrl} alt="Profile" className="w-full h-full object-cover" />
-                                ) : (
-                                    <span>{formData.fullName ? formData.fullName.charAt(0).toUpperCase() : "U"}</span>
-                                )}
-                            </div>
-                            <button
-                                onClick={handleUploadClick}
-                                className="absolute bottom-0 right-0 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white border-2 border-white shadow-sm hover:scale-110 transition-transform cursor-pointer"
-                            >
-                                <Camera size={14} />
-                            </button>
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileChange}
-                                className="hidden"
-                                accept="image/*"
-                            />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-900">Profile Photo</h3>
-                            <p className="text-xs text-slate-400 mb-3 max-w-xs">
-                                This will be displayed on your profile and to other players.
-                            </p>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={handleUploadClick}
-                                    className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold transition-colors"
-                                >
-                                    Upload New
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setSelectedFile(null);
-                                        setPreviewUrl(null);
-                                    }}
-                                    className="px-4 py-2 text-rose-500 hover:bg-rose-50 rounded-lg text-xs font-bold transition-colors"
-                                >
-                                    Remove
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Personal Information Form */}
-                    <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm space-y-8">
-                        <div>
-                            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <User className="text-emerald-500" size={24} />
-                                Personal Information
-                            </h2>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Full Name</label>
-                                    <div className="relative group">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
-                                        <input
-                                            type="text"
-                                            name="fullName"
-                                            value={formData.fullName}
-                                            onChange={handleChange}
-                                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
-                                        />
+                    {/* Profile Tab */}
+                    {activeTab === 'profile' && (
+                        <>
+                            {/* Profile Picture Section */}
+                            <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-6">
+                                <div className="relative group">
+                                    <div className="w-24 h-24 bg-slate-900 rounded-full flex items-center justify-center text-emerald-500 text-3xl font-black border-4 border-white shadow-lg overflow-hidden">
+                                        {previewUrl ? (
+                                            <img src={previewUrl} alt="Profile" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span>{formData.fullName ? formData.fullName.charAt(0).toUpperCase() : "U"}</span>
+                                        )}
                                     </div>
+                                    <button
+                                        onClick={handleUploadClick}
+                                        className="absolute bottom-0 right-0 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white border-2 border-white shadow-sm hover:scale-110 transition-transform cursor-pointer"
+                                    >
+                                        <Camera size={14} />
+                                    </button>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                        className="hidden"
+                                        accept="image/*"
+                                    />
                                 </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Phone Number</label>
-                                    <div className="relative group">
-                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
-                                        <input
-                                            type="tel"
-                                            name="phone"
-                                            value={formData.phone}
-                                            onChange={handleChange}
-                                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Location</label>
-                                    <div className="relative group">
-                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
-                                        <input
-                                            type="text"
-                                            name="place"
-                                            value={formData.place}
-                                            onChange={handleChange}
-                                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Favorite Game</label>
-                                    <div className="relative group">
-                                        <Gamepad2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
-                                        <input
-                                            type="text"
-                                            name="favoriteGame"
-                                            value={formData.favoriteGame}
-                                            onChange={handleChange}
-                                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="w-full h-px bg-slate-100" />
-
-                        {/* Security Section (Visible fields, but technically separate in UI grouping) */}
-                        <div>
-                            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <Lock className="text-emerald-500" size={24} />
-                                Security
-                            </h2>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Current Password</label>
-                                    <div className="relative group">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
-                                        <input
-                                            type="password"
-                                            name="currentPassword"
-                                            placeholder="••••••••"
-                                            value={formData.currentPassword}
-                                            onChange={handleChange}
-                                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">New Password</label>
-                                    <div className="relative group">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
-                                        <input
-                                            type="password"
-                                            name="newPassword"
-                                            placeholder="••••••••"
-                                            value={formData.newPassword}
-                                            onChange={handleChange}
-                                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Confirm New Password</label>
-                                    <div className="relative group">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
-                                        <input
-                                            type="password"
-                                            name="confirmNewPassword"
-                                            placeholder="••••••••"
-                                            value={formData.confirmNewPassword}
-                                            onChange={handleChange}
-                                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
-                                        />
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-900">Profile Photo</h3>
+                                    <p className="text-xs text-slate-400 mb-3 max-w-xs">
+                                        This will be displayed on your profile and to other players.
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={handleUploadClick}
+                                            className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold transition-colors"
+                                        >
+                                            Upload New
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setSelectedFile(null);
+                                                setPreviewUrl(null);
+                                            }}
+                                            className="px-4 py-2 text-rose-500 hover:bg-rose-50 rounded-lg text-xs font-bold transition-colors"
+                                        >
+                                            Remove
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Password Change Button */}
-                            <div className="flex items-center justify-end pt-2">
-                                <button
-                                    onClick={handlePasswordChange}
-                                    disabled={isLoading}
-                                    className="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isLoading ? "Changing..." : "Change Password"}
-                                </button>
+                            {/* Personal Information Form */}
+                            <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm space-y-8">
+                                <div>
+                                    <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                        <User className="text-emerald-500" size={24} />
+                                        Personal Information
+                                    </h2>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Full Name</label>
+                                            <div className="relative group">
+                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                                <input
+                                                    type="text"
+                                                    name="fullName"
+                                                    value={formData.fullName}
+                                                    onChange={handleChange}
+                                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Phone Number</label>
+                                            <div className="relative group">
+                                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                                <input
+                                                    type="tel"
+                                                    name="phone"
+                                                    value={formData.phone}
+                                                    onChange={handleChange}
+                                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Location</label>
+                                            <div className="relative group">
+                                                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                                <input
+                                                    type="text"
+                                                    name="place"
+                                                    value={formData.place}
+                                                    onChange={handleChange}
+                                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Favorite Game</label>
+                                            <div className="relative group">
+                                                <Gamepad2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                                <input
+                                                    type="text"
+                                                    name="favoriteGame"
+                                                    value={formData.favoriteGame}
+                                                    onChange={handleChange}
+                                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="w-full h-px bg-slate-100" />
+
+                                {/* Form Actions (Only for Profile) */}
+                                <div className="flex items-center justify-end gap-4 pt-4">
+                                    <button className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors">
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSubmit}
+                                        disabled={isLoading}
+                                        className="px-8 py-3 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl font-bold transition-all shadow-lg shadow-slate-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <Save size={18} />
+                                        {isLoading ? "Saving..." : "Save Changes"}
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Security Tab */}
+                    {activeTab === 'security' && (
+                        <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm space-y-8">
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                    <Lock className="text-emerald-500" size={24} />
+                                    Security
+                                </h2>
+                                <p className="text-sm text-slate-500 mb-6">
+                                    Ensure your account is using a long, random password to stay secure.
+                                </p>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Current Password</label>
+                                        <div className="relative group">
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                            <input
+                                                type="password"
+                                                name="currentPassword"
+                                                placeholder="••••••••"
+                                                value={formData.currentPassword}
+                                                onChange={handleChange}
+                                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">New Password</label>
+                                        <div className="relative group">
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                            <input
+                                                type="password"
+                                                name="newPassword"
+                                                placeholder="••••••••"
+                                                value={formData.newPassword}
+                                                onChange={handleChange}
+                                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Confirm New Password</label>
+                                        <div className="relative group">
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                                            <input
+                                                type="password"
+                                                name="confirmNewPassword"
+                                                placeholder="••••••••"
+                                                value={formData.confirmNewPassword}
+                                                onChange={handleChange}
+                                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-end pt-6">
+                                    <button
+                                        onClick={handlePasswordChange}
+                                        disabled={isLoading}
+                                        className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-200"
+                                    >
+                                        {isLoading ? "Changing..." : "Change Password"}
+                                    </button>
+                                </div>
                             </div>
                         </div>
-
-                        {/* Form Actions */}
-                        <div className="flex items-center justify-end gap-4 pt-4">
-                            <button className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors">
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                disabled={isLoading}
-                                className="px-8 py-3 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl font-bold transition-all shadow-lg shadow-slate-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <Save size={18} />
-                                {isLoading ? "Saving..." : "Save Changes"}
-                            </button>
-                        </div>
-
-                    </div>
+                    )}
                 </div>
             </div>
         </div>

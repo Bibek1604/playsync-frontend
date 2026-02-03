@@ -4,6 +4,7 @@ import { Chrome, ArrowRight, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useLogin } from '@/features/auth/hooks/useLogin';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/features/auth/store/auth-store';
 
 export default function EnhancedLoginPage() {
   const [email, setEmail] = useState('');
@@ -15,7 +16,12 @@ export default function EnhancedLoginPage() {
     e.preventDefault();
     const success = await login({ email, password });
     if (success) {
-      router.push('/dashboard');
+      const user = useAuthStore.getState().user;
+      if (user?.role === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     }
   };
 

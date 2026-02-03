@@ -8,11 +8,13 @@ interface AuthState {
     user: User | null;
     profile: Profile | null;
     accessToken: string | null;
+    refreshToken: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     error: string | null;
 
     setAccessToken: (token: string) => void;
+    setRefreshToken: (token: string) => void;
     login: (credentials: LoginCredentials) => Promise<boolean>;
     register: (credentials: RegisterCredentials) => Promise<boolean>;
     logout: () => Promise<void>;
@@ -27,19 +29,22 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             profile: null,
             accessToken: null,
+            refreshToken: null,
             isAuthenticated: false,
             isLoading: false,
             error: null,
 
             setAccessToken: (token) => set({ accessToken: token }),
+            setRefreshToken: (token) => set({ refreshToken: token }),
 
             login: async (credentials) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const { user, accessToken } = await authService.login(credentials);
+                    const { user, accessToken, refreshToken } = await authService.login(credentials);
                     set({
                         user,
                         accessToken,
+                        refreshToken,
                         isAuthenticated: true,
                         isLoading: false,
                         error: null,
@@ -104,6 +109,7 @@ export const useAuthStore = create<AuthState>()(
                     user: null,
                     profile: null,
                     accessToken: null,
+                    refreshToken: null,
                     isAuthenticated: false,
                     isLoading: false,
                     error: null,
@@ -114,6 +120,8 @@ export const useAuthStore = create<AuthState>()(
             partialize: (state) => ({
                 user: state.user,
                 isAuthenticated: state.isAuthenticated,
+                accessToken: state.accessToken,
+                refreshToken: state.refreshToken,
                 // profile: state.profile // Optional: persist profile if needed
             }),
         }
@@ -123,6 +131,8 @@ export const useAuthStore = create<AuthState>()(
 // Configure API Client with Store access
 configureAuth(
     () => useAuthStore.getState().accessToken,
-    () => useAuthStore.getState().logout(),
-    (token) => useAuthStore.getState().setAccessToken(token)
+    () => useAuthStore.getState().refreshToken,
+    () => useAuthStore.getState().clearAuth(), // Use clearAuth to avoid API loops on expired session
+    (token) => useAuthStore.getState().setAccessToken(token),
+    (token) => useAuthStore.getState().setRefreshToken(token)
 );

@@ -34,5 +34,10 @@ export const authService = {
 
     changePassword: async (data: { currentPassword: string; newPassword: string; confirmNewPassword: string }): Promise<void> => {
         await apiClient.put(ENDPOINTS.PROFILE.CHANGE_PASSWORD, data);
+    },
+
+    getAllUsers: async (): Promise<User[]> => {
+        const response = await apiClient.get<ApiResponse<User[]>>(ENDPOINTS.AUTH.USERS);
+        return response.data.data;
     }
 };

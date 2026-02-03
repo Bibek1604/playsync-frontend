@@ -7,6 +7,7 @@ export const ENDPOINTS = {
         REFRESH: '/api/v1/auth/refresh-token',
         LOGOUT: '/api/v1/auth/logout',
         ME: '/api/v1/auth/me',
+        USERS: '/api/v1/auth/users',
     },
     PROFILE: {
         GET: '/api/v1/profile',

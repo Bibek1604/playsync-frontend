@@ -9,17 +9,23 @@ const apiClient = axios.create({
 
 // Dependency definitions
 let getAccessToken: () => string | null = () => null;
+let getRefreshToken: () => string | null = () => null;
 let performLogout: () => void = () => { };
 let storeSetAccessToken: (token: string) => void = () => { };
+let storeSetRefreshToken: (token: string) => void = () => { };
 
 export const configureAuth = (
     getToken: () => string | null,
+    getRefToken: () => string | null,
     logout: () => void,
-    setToken: (token: string) => void
+    setToken: (token: string) => void,
+    setRefToken: (token: string) => void
 ) => {
     getAccessToken = getToken;
+    getRefreshToken = getRefToken;
     performLogout = logout;
     storeSetAccessToken = setToken;
+    storeSetRefreshToken = setRefToken;
 };
 
 // Queue configuration
@@ -70,18 +76,29 @@ apiClient.interceptors.response.use(
             originalRequest._retry = true;
             isRefreshing = true;
 
+            const refreshToken = getRefreshToken();
+
+            if (!refreshToken) {
+                isRefreshing = false;
+                performLogout();
+                return Promise.reject(error);
+            }
+
             try {
                 // Manual refresh call to avoid interceptors
                 const response = await axios.post(
                     `${API_URL}${ENDPOINTS.AUTH.REFRESH}`,
-                    {},
+                    { refreshToken },
                     { withCredentials: true }
                 );
 
-                const { accessToken } = response.data;
+                const { accessToken, refreshToken: newRefreshToken } = response.data.data;
 
-                // Update store via injected function
+                // Update store via injected functions
                 storeSetAccessToken(accessToken);
+                if (newRefreshToken) {
+                    storeSetRefreshToken(newRefreshToken);
+                }
 
                 apiClient.defaults.headers.common['Authorization'] = 'Bearer ' + accessToken;
                 processQueue(null, accessToken);
@@ -95,7 +112,6 @@ apiClient.interceptors.response.use(
                 isRefreshing = false;
             }
         }
-
         return Promise.reject(error);
     }
 );
