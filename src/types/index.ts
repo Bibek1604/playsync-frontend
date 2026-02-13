@@ -23,13 +23,28 @@ export interface Profile {
 }
 
 export interface Game {
-    id: string;
-    name: string;
-    image: string;
-    players: number;
+    _id: string;
+    title: string;
+    description: string;
+    tags: string[];
+    imageUrl: string;
     maxPlayers: number;
-    status: 'waiting' | 'playing' | 'finished';
-    difficulty?: string;
+    currentPlayers: number;
+    status: 'OPEN' | 'FULL' | 'ENDED' | 'CANCELLED';
+    creatorId: string;
+    participants: Array<{
+        userId: string;
+        joinedAt: string;
+        leftAt?: string;
+        status: 'ACTIVE' | 'LEFT';
+    }>;
+    startTime: string;
+    endTime: string;
+    endedAt?: string;
+    cancelledAt?: string;
+    completedAt?: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface GameStats {

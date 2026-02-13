@@ -11,7 +11,7 @@ interface ApiResponse<T> {
 export const authService = {
     login: async (data: any): Promise<AuthResponse> => {
         const response = await apiClient.post<ApiResponse<AuthResponse>>(ENDPOINTS.AUTH.LOGIN, data);
-        return response.data.data; // Extract data from { success, message, data }
+        return response.data.data;
     },
 
     register: async (data: any): Promise<void> => {
@@ -24,12 +24,12 @@ export const authService = {
 
     getProfile: async (): Promise<Profile> => {
         const response = await apiClient.get<ApiResponse<Profile>>(ENDPOINTS.PROFILE.GET);
-        return response.data.data; // Extract data from { success, message, data }
+        return response.data.data;
     },
 
     updateProfile: async (data: Profile | FormData): Promise<Profile> => {
         const response = await apiClient.put<ApiResponse<Profile>>(ENDPOINTS.PROFILE.UPDATE, data);
-        return response.data.data; // Extract data from { success, message, data }
+        return response.data.data;
     },
 
     changePassword: async (data: { currentPassword: string; newPassword: string; confirmNewPassword: string }): Promise<void> => {
