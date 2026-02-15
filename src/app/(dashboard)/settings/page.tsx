@@ -8,12 +8,17 @@ import {
     Lock,
     Camera,
     Save,
+    Award,
+    Trophy,
+    Gift,
 } from "lucide-react";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { authService } from "@/features/auth/api/auth-service";
 import { API_URL } from "@/lib/constants";
 import { NEPAL_DISTRICTS } from "@/lib/nepal-districts";
 import { AxiosError } from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { scorecardService } from "@/features/scorecard/api/scorecard-service";
 
 export default function SettingsPage() {
     // Use selectors to prevent unnecessary re-renders and ensure stable function references
@@ -22,6 +27,12 @@ export default function SettingsPage() {
     const fetchProfile = useAuthStore((state) => state.fetchProfile);
     const updateProfile = useAuthStore((state) => state.updateProfile);
     const isLoading = useAuthStore((state) => state.isLoading);
+
+    const { data: myScorecard } = useQuery({
+        queryKey: ['myScorecard'],
+        queryFn: scorecardService.getMyScorecard,
+        enabled: !!user
+    });
 
     const [formData, setFormData] = useState({
         fullName: "",
@@ -39,7 +50,7 @@ export default function SettingsPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Active Tab State
-    const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'points'>('profile');
 
     // Fetch profile on mount
     useEffect(() => {
@@ -196,6 +207,15 @@ export default function SettingsPage() {
                             }`}
                     >
                         <Lock size={18} /> Security
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('points')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-colors ${activeTab === 'points'
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "text-slate-500 hover:bg-slate-50"
+                            }`}
+                    >
+                        <Award size={18} /> Rewards
                     </button>
                 </div>
 
@@ -419,6 +439,63 @@ export default function SettingsPage() {
                                     >
                                         {isLoading ? "Changing..." : "Change Password"}
                                     </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Points Tab */}
+                    {activeTab === 'points' && (
+                        <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm space-y-8 animate-fade-in">
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                    <Award className="text-emerald-500" size={24} />
+                                    Your Rewards
+                                </h2>
+
+                                <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-200 mb-8 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                                        <Award size={120} />
+                                    </div>
+                                    <div className="relative z-10">
+                                        <p className="text-emerald-100 font-medium mb-1">Total Points</p>
+                                        <h3 className="text-5xl font-black mb-4">{myScorecard?.points || (myScorecard as any)?.totalPoints || 0}</h3>
+                                        <p className="text-sm text-emerald-50 opacity-90 max-w-sm">
+                                            Earn points by participating in games, winning tournaments, and being an active community member.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <h3 className="font-bold text-slate-900 text-lg">Ways to Earn</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="p-4 rounded-xl border border-slate-100 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+                                            <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                                <Gamepad2 size={20} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-800">Play Games</h4>
+                                                <p className="text-xs text-slate-500">+50 points per game</p>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 rounded-xl border border-slate-100 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+                                            <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
+                                                <Trophy size={20} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-800">Win Tournaments</h4>
+                                                <p className="text-xs text-slate-500">+500 points for 1st place</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-6 border-t border-slate-100">
+                                    <h3 className="font-bold text-slate-900 text-lg mb-4">Redeem Rewards</h3>
+                                    <div className="text-center py-8 text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                        <Gift className="mx-auto mb-2 text-slate-400" size={32} />
+                                        <p>Rewards marketplace coming soon!</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

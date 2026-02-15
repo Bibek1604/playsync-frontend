@@ -5,6 +5,7 @@ export interface User {
     avatar?: string;
     createdAt?: string;
     role?: string;
+    points?: number;
 }
 
 export interface AuthResponse {
@@ -20,6 +21,7 @@ export interface Profile {
     favoriteGame?: string;
     place?: string;
     profilePicture?: string;
+    points?: number;
 }
 
 export interface Game {

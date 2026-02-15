@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { Providers } from "./providers";
 import { Footer } from "./layout/Footer";
-import Header from "./layout/Header";
+
 
 export function ConditionalContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -24,8 +24,6 @@ export function ConditionalContent({ children }: { children: React.ReactNode }) 
 
   return (
     <>
-      <Header />
-
       <main className="flex-grow">
         <Providers>
           {children}

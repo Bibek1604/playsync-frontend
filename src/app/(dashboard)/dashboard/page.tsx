@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   AreaChart,
   Area,
@@ -15,11 +15,14 @@ import {
   Target,
   ArrowUpRight,
   Filter,
+  Award,
 } from "lucide-react";
 import { ScorecardView } from "@/features/scorecard/components/ScorecardView";
 import { HistoryStatsView } from "@/features/history/components/HistoryStatsView";
 import { RecentGamesList } from "@/features/history/components/RecentGamesList";
 import { useAuthStore } from "@/features/auth/store/auth-store";
+import { useQuery } from "@tanstack/react-query";
+import { scorecardService } from "@/features/scorecard/api/scorecard-service";
 
 const chartData = [
   { m: "Mon", v: 400 },
@@ -32,7 +35,17 @@ const chartData = [
 ];
 
 export default function Dashboard() {
-  const { user } = useAuthStore();
+  const { user, profile, fetchProfile } = useAuthStore();
+
+  const { data: myScorecard, isLoading: isScoreLoading } = useQuery({
+    queryKey: ['myScorecard'],
+    queryFn: scorecardService.getMyScorecard,
+    enabled: !!user
+  });
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   return (
     <div className="flex-1 p-2 bg-[#FBFCFE] font-poppins min-h-screen">
@@ -137,6 +150,35 @@ export default function Dashboard() {
 
         {/* Vertical Stat Cards */}
         <div className="col-span-12 lg:col-span-4 space-y-8">
+          {/* Points Card */}
+          <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[2rem] p-6 text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative overflow-hidden">
+            <div className="absolute -right-6 -top-6 opacity-10 rotate-12">
+              <Award size={140} />
+            </div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-md shadow-inner">
+                  <Award size={20} className="text-yellow-300" />
+                </div>
+                <span className="font-bold text-indigo-100 tracking-wider text-xs uppercase">Total Points</span>
+              </div>
+              <div className="flex items-baseline gap-2 mb-2">
+                <h3 className="text-5xl font-black tracking-tight">{isScoreLoading ? '...' : (myScorecard?.points || (myScorecard as any)?.totalPoints || 0)}</h3>
+                <span className="text-sm font-bold text-indigo-300">pts</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 border border-white/5 backdrop-blur-sm">
+                {myScorecard?.rank ? (
+                  <>
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse"></div>
+                    <span className="text-[10px] font-bold text-indigo-100 uppercase tracking-wide">Rank #{myScorecard.rank}</span>
+                  </>
+                ) : (
+                  <span className="text-[10px] font-bold text-indigo-100 uppercase tracking-wide">Unranked</span>
+                )}
+              </div>
+            </div>
+          </div>
+
           <ScorecardView />
           <HistoryStatsView />
         </div>

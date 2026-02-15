@@ -22,11 +22,11 @@ export interface LeaderboardStats {
 }
 
 export const leaderboardService = {
-    getLeaderboard: async (params?: { page?: number; limit?: number; period?: 'daily' | 'weekly' | 'monthly' | 'all-time' }): Promise<LeaderboardEntry[]> => {
-        const response = await apiClient.get<ApiResponse<LeaderboardEntry[]>>(ENDPOINTS.LEADERBOARD.LIST, {
+    getLeaderboard: async (params?: { page?: number; limit?: number; period?: 'daily' | 'weekly' | 'monthly' | 'all' }): Promise<LeaderboardEntry[]> => {
+        const response = await apiClient.get<ApiResponse<{ leaderboard: LeaderboardEntry[]; pagination: any }>>(ENDPOINTS.LEADERBOARD.LIST, {
             params,
         });
-        return response.data.data;
+        return response.data.data.leaderboard;
     },
 
     getStats: async (): Promise<LeaderboardStats> => {

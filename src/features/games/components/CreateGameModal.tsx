@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { X, Upload, Loader2, Calendar, Hash, Users, Type, MapPin } from 'lucide-react';
 import { useCreateGame } from '../hooks/useCreateGame';
+import { useAuthStore } from '@/features/auth/store/auth-store';
 import { NEPAL_DISTRICTS } from '@/lib/nepal-districts';
 import { useRouter } from 'next/navigation';
 
@@ -15,7 +16,8 @@ interface CreateGameModalProps {
 
 export default function CreateGameModal({ isOpen, onClose, category }: CreateGameModalProps) {
     const { createGame, isLoading } = useCreateGame();
-    const router = useRouter(); // Add router
+    const router = useRouter();
+    const { user } = useAuthStore();
 
     // Form State
     const [title, setTitle] = useState('');
@@ -32,6 +34,16 @@ export default function CreateGameModal({ isOpen, onClose, category }: CreateGam
         return date.toISOString().slice(0, 16);
     });
     const [image, setImage] = useState<File | null>(null);
+
+    // Reset/Init form when opening
+    React.useEffect(() => {
+        if (isOpen) {
+            if (!title && user?.fullName) {
+                setTitle(`${user.fullName}'s ${category === 'ONLINE' ? 'Lobby' : 'Game'}`);
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, user, category]);
 
     if (!isOpen) return null;
 

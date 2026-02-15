@@ -87,12 +87,13 @@ export default function AdminDashboard() {
                             ) : (
                                 filteredUsers.map((user) => {
                                     const role = user.role || 'user';
+                                    const userId = (user as any)._id || user.id || Math.random().toString(); // Fallback to prevent key collision if IDs are missing
                                     return (
-                                        <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <tr key={userId} className="hover:bg-gray-50/50 transition-colors">
                                             <td className="px-6 py-4 text-sm">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold">
-                                                        {user.fullName.charAt(0).toUpperCase()}
+                                                        {(user.fullName || 'U').charAt(0).toUpperCase()}
                                                     </div>
                                                     <div>
                                                         <p className="font-semibold text-gray-900">{user.fullName}</p>
@@ -105,8 +106,8 @@ export default function AdminDashboard() {
                                             </td>
                                             <td className="px-6 py-4 text-sm">
                                                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${role === 'admin'
-                                                        ? 'bg-purple-50 text-purple-600 ring-1 ring-purple-100'
-                                                        : 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                                                    ? 'bg-purple-50 text-purple-600 ring-1 ring-purple-100'
+                                                    : 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
                                                     }`}>
                                                     {role === 'admin' && <Shield size={12} />}
                                                     {role.charAt(0).toUpperCase() + role.slice(1)}
