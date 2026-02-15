@@ -27,10 +27,10 @@ export const gameService = {
     },
 
     getById: async (id: string): Promise<Game> => {
-        const response = await apiClient.get<ApiResponse<Game>>(ENDPOINTS.GAMES.BY_ID(id), {
+        const response = await apiClient.get<ApiResponse<{ game: Game }>>(ENDPOINTS.GAMES.BY_ID(id), {
             params: { details: true }
         });
-        return response.data.data;
+        return response.data.data.game;
     },
 
     getMyCreated: async (params?: QueryParams): Promise<PaginatedResponse<Game>> => {
