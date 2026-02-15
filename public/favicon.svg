@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Circle -->
+  <circle cx="32" cy="32" r="32" fill="url(#iconGradient)"/>
+  
+  <!-- Play Button Circle -->
+  <circle cx="32" cy="32" r="22" fill="white" opacity="0.2"/>
+  <circle cx="32" cy="32" r="20" fill="none" stroke="white" stroke-width="2.5"/>
+  
+  <!-- Play Triangle -->
+  <path d="M 26 20 L 26 44 L 44 32 Z" fill="white"/>
+  
+  <!-- Sync Arrows -->
+  <path d="M 46 26 Q 50 24, 54 26 L 52 23 M 54 26 L 52 29" 
+        stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M 54 38 Q 50 40, 46 38 L 48 41 M 46 38 L 48 35" 
+        stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+</svg>

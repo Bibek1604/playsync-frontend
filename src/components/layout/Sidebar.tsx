@@ -44,7 +44,6 @@ export default function Sidebar() {
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
         { icon: Users, label: "Online Games", href: "/games/online" },
         { icon: Trophy, label: "Offline Games", href: "/games/offline" },
-        { icon: MessageSquare, label: "Messages", href: "/messages", badge: "3" },
         { icon: MessageSquare, label: "Rankings", href: "/rankings" },
         { icon: Settings, label: "Settings", href: "/settings" },
     ];
@@ -56,14 +55,17 @@ export default function Sidebar() {
         >
             {/* --- Header / Logo --- */}
             <div className="h-20 flex items-center px-6 mb-4">
-                <Link href="/" className="flex items-center gap-3 group">
-                    <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-100 shrink-0 group-hover:rotate-12 transition-transform">
-                        <Gamepad2 size={20} />
-                    </div>
-                    {!isCollapsed && (
-                        <span className="text-xl font-black tracking-tighter uppercase text-slate-900">
-                            PLAY<span className="text-emerald-600">SYNC</span>
-                        </span>
+                <Link href="/" className="flex items-center gap-3 group w-full">
+                    {!isCollapsed ? (
+                        <img
+                            src="/playsync-logo.svg"
+                            alt="PlaySync"
+                            className="h-8 w-auto transition-transform group-hover:scale-105"
+                        />
+                    ) : (
+                        <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100 shrink-0 group-hover:rotate-12 transition-transform">
+                            <Gamepad2 size={20} />
+                        </div>
                     )}
                 </Link>
             </div>
