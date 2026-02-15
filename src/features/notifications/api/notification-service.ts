@@ -1,5 +1,6 @@
 import apiClient from '@/lib/api-client';
 import { ENDPOINTS } from '@/lib/constants';
+import { QueryParams } from '@/types';
 
 interface ApiResponse<T> {
     success: boolean;
@@ -19,7 +20,7 @@ export interface Notification {
 }
 
 export const notificationService = {
-    getNotifications: async (params?: any): Promise<Notification[]> => {
+    getNotifications: async (params?: QueryParams): Promise<Notification[]> => {
         const response = await apiClient.get<ApiResponse<Notification[]>>(ENDPOINTS.NOTIFICATIONS.LIST, {
             params,
         });

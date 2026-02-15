@@ -1,6 +1,6 @@
 import apiClient from '@/lib/api-client';
 import { ENDPOINTS } from '@/lib/constants';
-import { Game } from '@/types';
+import { Game, QueryParams } from '@/types';
 
 interface ApiResponse<T> {
     success: boolean;
@@ -17,11 +17,11 @@ export interface ParticipationStats {
 }
 
 export const historyService = {
-    getMyHistory: async (params?: any): Promise<Game[]> => {
+    getMyHistory: async (params?: QueryParams): Promise<Game[]> => {
         const response = await apiClient.get<ApiResponse<Game[]>>(ENDPOINTS.HISTORY.LIST, {
             params,
         });
-        return response.data.data;
+        return Array.isArray(response.data.data) ? response.data.data : [];
     },
 
     getStats: async (): Promise<ParticipationStats> => {

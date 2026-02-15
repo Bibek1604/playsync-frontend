@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Trophy, Calendar, Users, DollarSign, ArrowRight, Star } from "lucide-react";
+import { Trophy, Calendar, Users, ArrowRight, Star } from "lucide-react";
 
 const tournaments = [
     {

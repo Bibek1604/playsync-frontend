@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
-import { Footer } from "./layout/Footer";
-import Header from "./layout/Header";
+import { ConditionalContent } from "./ConditionalContent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,10 +34,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} font-poppins antialiased flex min-h-screen flex-col bg-white`}
       >
-        <main className="flex-grow">
-          <Providers>{children}</Providers>
-        </main>
-        <Footer />
+        <ConditionalContent>
+          {children}
+        </ConditionalContent>
       </body>
     </html>
   );

@@ -31,9 +31,9 @@ export interface Game {
     maxPlayers: number;
     currentPlayers: number;
     status: 'OPEN' | 'FULL' | 'ENDED' | 'CANCELLED';
-    creatorId: string;
+    creatorId: string | User;
     participants: Array<{
-        userId: string;
+        userId: string | User;
         joinedAt: string;
         leftAt?: string;
         status: 'ACTIVE' | 'LEFT';
@@ -43,6 +43,8 @@ export interface Game {
     endedAt?: string;
     cancelledAt?: string;
     completedAt?: string;
+    category: 'ONLINE' | 'OFFLINE';
+    location?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -69,4 +71,14 @@ export interface RegisterCredentials {
     email: string;
     password: string;
     confirmPassword?: string;
+}
+
+export interface QueryParams {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    sortBy?: string;
+    order?: 'asc' | 'desc';
+    [key: string]: string | number | undefined;
 }

@@ -19,11 +19,17 @@ export interface ChatMessage {
     };
 }
 
+interface ChatHistoryResponse {
+    messages: ChatMessage[];
+    hasMore: boolean;
+    nextCursor?: string;
+}
+
 export const chatService = {
     getChatHistory: async (gameId: string, params?: { page?: number; limit?: number }): Promise<ChatMessage[]> => {
-        const response = await apiClient.get<ApiResponse<ChatMessage[]>>(ENDPOINTS.CHAT.HISTORY(gameId), {
+        const response = await apiClient.get<ApiResponse<ChatHistoryResponse>>(ENDPOINTS.CHAT.HISTORY(gameId), {
             params,
         });
-        return response.data.data;
+        return response.data.data.messages;
     }
 };

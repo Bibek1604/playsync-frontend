@@ -112,7 +112,7 @@ function BenefitsSection() {
                 </div>
 
                 <p className="text-lg font-medium text-slate-700 leading-relaxed mb-10 italic">
-                  "{testimonial.quote}"
+                  &quot;{testimonial.quote}&quot;
                 </p>
 
                 <div className="mt-auto flex items-center gap-4 pt-6 border-t border-slate-200/60">

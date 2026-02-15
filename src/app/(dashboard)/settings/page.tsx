@@ -12,6 +12,8 @@ import {
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { authService } from "@/features/auth/api/auth-service";
 import { API_URL } from "@/lib/constants";
+import { NEPAL_DISTRICTS } from "@/lib/nepal-districts";
+import { AxiosError } from "axios";
 
 export default function SettingsPage() {
     // Use selectors to prevent unnecessary re-renders and ensure stable function references
@@ -47,6 +49,7 @@ export default function SettingsPage() {
     // Update form when profile/user data is available
     useEffect(() => {
         if (user || profile) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setFormData(prev => ({
                 ...prev,
                 fullName: profile?.fullName || user?.fullName || "",
@@ -156,8 +159,9 @@ export default function SettingsPage() {
                 newPassword: "",
                 confirmNewPassword: ""
             }));
-        } catch (error: any) {
-            const errorMsg = error.response?.data?.message || "Failed to change password";
+        } catch (error) {
+            const err = error as AxiosError<{ message: string }>;
+            const errorMsg = err.response?.data?.message || "Failed to change password";
             alert(errorMsg);
         }
     };
@@ -290,14 +294,25 @@ export default function SettingsPage() {
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Location</label>
                                             <div className="relative group">
-                                                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
-                                                <input
-                                                    type="text"
+                                                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors pointer-events-none" size={18} />
+                                                <select
                                                     name="place"
                                                     value={formData.place}
-                                                    onChange={handleChange}
-                                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900"
-                                                />
+                                                    onChange={(e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))}
+                                                    className="w-full pl-11 pr-8 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-emerald-500/20 rounded-xl outline-none transition-all font-medium text-slate-900 appearance-none"
+                                                >
+                                                    <option value="" disabled>Select your district</option>
+                                                    {NEPAL_DISTRICTS.map((district) => (
+                                                        <option key={district} value={district}>
+                                                            {district}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </div>
                                             </div>
                                         </div>
 

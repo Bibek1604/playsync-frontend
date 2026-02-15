@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import {
   ArrowRight,
   Search,
   Gamepad2,
   ShieldCheck,
   Zap,
-  Plus,
   Target,
   Trophy,
   Users,
@@ -17,6 +17,12 @@ import {
 function HeroSection() {
   const [rotate, setRotate] = useState({ x: 0, y: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Interaction logic for the RIGHT side only
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -50,7 +56,7 @@ function HeroSection() {
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700">
               <Sparkles className="w-4 h-4" />
               <span className="text-[10px] font-bold uppercase tracking-[0.2em]">
-                Next-Gen Squad Discovery
+                {mounted && user?.fullName ? `Welcome, ${user.fullName}` : "Next-Gen Squad Discovery"}
               </span>
             </div>
 
@@ -214,7 +220,7 @@ function HeroSection() {
   );
 }
 
-function Sparkles(props: any) {
+function Sparkles(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}

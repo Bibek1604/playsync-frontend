@@ -1,6 +1,6 @@
 import apiClient from '@/lib/api-client';
 import { ENDPOINTS } from '@/lib/constants';
-import { Game } from '@/types';
+import { Game, QueryParams } from '@/types';
 
 interface ApiResponse<T> {
     success: boolean;
@@ -9,7 +9,7 @@ interface ApiResponse<T> {
 }
 
 interface PaginatedResponse<T> {
-    items: T[];
+    games: T[];
     pagination: {
         page: number;
         limit: number;
@@ -19,7 +19,7 @@ interface PaginatedResponse<T> {
 }
 
 export const gameService = {
-    getAll: async (params?: any): Promise<PaginatedResponse<Game>> => {
+    getAll: async (params?: QueryParams): Promise<PaginatedResponse<Game>> => {
         const response = await apiClient.get<ApiResponse<PaginatedResponse<Game>>>(ENDPOINTS.GAMES.LIST, {
             params,
         });
@@ -27,18 +27,20 @@ export const gameService = {
     },
 
     getById: async (id: string): Promise<Game> => {
-        const response = await apiClient.get<ApiResponse<Game>>(ENDPOINTS.GAMES.BY_ID(id));
+        const response = await apiClient.get<ApiResponse<Game>>(ENDPOINTS.GAMES.BY_ID(id), {
+            params: { details: true }
+        });
         return response.data.data;
     },
 
-    getMyCreated: async (params?: any): Promise<PaginatedResponse<Game>> => {
+    getMyCreated: async (params?: QueryParams): Promise<PaginatedResponse<Game>> => {
         const response = await apiClient.get<ApiResponse<PaginatedResponse<Game>>>(ENDPOINTS.GAMES.MY_CREATED, {
             params,
         });
         return response.data.data;
     },
 
-    getMyJoined: async (params?: any): Promise<PaginatedResponse<Game>> => {
+    getMyJoined: async (params?: QueryParams): Promise<PaginatedResponse<Game>> => {
         const response = await apiClient.get<ApiResponse<PaginatedResponse<Game>>>(ENDPOINTS.GAMES.MY_JOINED, {
             params,
         });

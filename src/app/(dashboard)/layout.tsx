@@ -1,7 +1,11 @@
+
 "use client";
 import React, { useEffect } from "react";
 import Sidebar from "@/components/layout/Sidebar";
+import GameSidebar from "@/components/game/GameSidebar";
+import DashboardHeader from "@/components/layout/DashboardHeader";
 import { useAuthStore } from "@/features/auth/store/auth-store";
+import { useGameStore } from "@/features/games/store/game-store";
 import { useRouter } from "next/navigation";
 
 export default function DashboardLayout({
@@ -9,25 +13,34 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { isAuthenticated, isLoading } = useAuthStore();
+    const { isAuthenticated, isLoading, isHydrated } = useAuthStore();
+    const { viewMode, activeGame } = useGameStore();
     const router = useRouter();
 
     useEffect(() => {
-        if (!isLoading && !isAuthenticated) {
+        if (isHydrated && !isLoading && !isAuthenticated) {
             router.push("/auth/login");
         }
-    }, [isAuthenticated, isLoading, router]);
+    }, [isAuthenticated, isLoading, isHydrated, router]);
 
-    if (!isAuthenticated) {
-        return null; // Or return a loading spinner if preferred, but null avoids flash of content
+    if (!isHydrated || !isAuthenticated) {
+        return null;
     }
 
     return (
-        <div className="flex bg-[#FBFCFE]">
-            <Sidebar />
-            <main className="flex-1 min-h-screen p-8">
-                {children}
-            </main>
+        <div className="flex bg-[#FBFCFE] h-screen overflow-hidden">
+            {/* Sidebar Container */}
+            <div className="flex-shrink-0 h-full z-10">
+                <Sidebar />
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto w-full relative">
+                <DashboardHeader />
+                <main className="flex-1 p-0 overflow-hidden w-full h-full"> {/* Remove padding to allow full game area */}
+                    {children}
+                </main>
+            </div>
         </div>
     );
 }

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { AxiosError } from 'axios';
 import { authService } from '../api/auth-service';
 import { configureAuth } from '@/lib/api-client';
 import { User, Profile, LoginCredentials, RegisterCredentials } from '@/types';
@@ -19,8 +20,10 @@ interface AuthState {
     register: (credentials: RegisterCredentials) => Promise<boolean>;
     logout: () => Promise<void>;
     fetchProfile: () => Promise<void>;
-    updateProfile: (data: Profile | FormData) => Promise<boolean>;
+    updateProfile: (data: Partial<Profile> | FormData) => Promise<boolean>;
     clearAuth: () => void;
+    isHydrated: boolean;
+    setHydrated: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -33,9 +36,11 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             isLoading: false,
             error: null,
+            isHydrated: false,
 
             setAccessToken: (token) => set({ accessToken: token }),
             setRefreshToken: (token) => set({ refreshToken: token }),
+            setHydrated: () => set({ isHydrated: true }),
 
             login: async (credentials) => {
                 set({ isLoading: true, error: null });
@@ -50,8 +55,9 @@ export const useAuthStore = create<AuthState>()(
                         error: null,
                     });
                     return true;
-                } catch (error: any) {
-                    const msg = error.response?.data?.message || 'Login failed';
+                } catch (error) {
+                    const err = error as AxiosError<{ message: string }>;
+                    const msg = err.response?.data?.message || 'Login failed';
                     set({ error: msg, isLoading: false });
                     return false;
                 }
@@ -63,8 +69,9 @@ export const useAuthStore = create<AuthState>()(
                     await authService.register(credentials);
                     set({ isLoading: false, error: null });
                     return true;
-                } catch (error: any) {
-                    const msg = error.response?.data?.message || 'Registration failed';
+                } catch (error) {
+                    const err = error as AxiosError<{ message: string }>;
+                    const msg = err.response?.data?.message || 'Registration failed';
                     set({ error: msg, isLoading: false });
                     return false;
                 }
@@ -74,7 +81,7 @@ export const useAuthStore = create<AuthState>()(
                 set({ isLoading: true });
                 try {
                     await authService.logout();
-                } catch (error) {
+                } catch {
                     // Ignore logout errors
                 } finally {
                     get().clearAuth();
@@ -86,7 +93,7 @@ export const useAuthStore = create<AuthState>()(
                 try {
                     const profile = await authService.getProfile();
                     set({ profile, isLoading: false });
-                } catch (error: any) {
+                } catch (error) {
                     console.error(error);
                     set({ isLoading: false });
                 }
@@ -98,7 +105,7 @@ export const useAuthStore = create<AuthState>()(
                     const profile = await authService.updateProfile(data);
                     set({ profile, isLoading: false });
                     return true;
-                } catch (error) {
+                } catch {
                     set({ isLoading: false });
                     return false;
                 }
@@ -124,6 +131,9 @@ export const useAuthStore = create<AuthState>()(
                 refreshToken: state.refreshToken,
                 // profile: state.profile // Optional: persist profile if needed
             }),
+            onRehydrateStorage: () => (state) => {
+                state?.setHydrated();
+            },
         }
     )
 );

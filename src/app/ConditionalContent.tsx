@@ -7,7 +7,7 @@ import Header from "./layout/Header";
 
 export function ConditionalContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isDashboard = pathname.startsWith('/dashboard');
+  const isDashboard = pathname.startsWith('/dashboard') || pathname.startsWith('/games');
 
   if (isDashboard) {
     return (
@@ -25,7 +25,7 @@ export function ConditionalContent({ children }: { children: React.ReactNode }) 
   return (
     <>
       <Header />
-      
+
       <main className="flex-grow">
         <Providers>
           {children}

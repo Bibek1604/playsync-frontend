@@ -164,7 +164,7 @@ export default function SquadsPage() {
                         Start a New Squad
                     </h3>
                     <p className="text-slate-500 text-sm max-w-[200px]">
-                        Can't find what you're looking for? distinct yourself.
+                        Can&apos;t find what you&apos;re looking for? distinct yourself.
                     </p>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 import apiClient from '@/lib/api-client';
 import { ENDPOINTS } from '@/lib/constants';
-import { AuthResponse, User, Profile } from '@/types';
+import { AuthResponse, User, Profile, LoginCredentials, RegisterCredentials } from '@/types';
 
 interface ApiResponse<T> {
     success: boolean;
@@ -9,12 +9,12 @@ interface ApiResponse<T> {
 }
 
 export const authService = {
-    login: async (data: any): Promise<AuthResponse> => {
+    login: async (data: LoginCredentials): Promise<AuthResponse> => {
         const response = await apiClient.post<ApiResponse<AuthResponse>>(ENDPOINTS.AUTH.LOGIN, data);
         return response.data.data;
     },
 
-    register: async (data: any): Promise<void> => {
+    register: async (data: RegisterCredentials): Promise<void> => {
         await apiClient.post(ENDPOINTS.AUTH.REGISTER, data);
     },
 
@@ -27,13 +27,13 @@ export const authService = {
         return response.data.data;
     },
 
-    updateProfile: async (data: Profile | FormData): Promise<Profile> => {
-        const response = await apiClient.put<ApiResponse<Profile>>(ENDPOINTS.PROFILE.UPDATE, data);
+    updateProfile: async (data: Partial<Profile> | FormData): Promise<Profile> => {
+        const response = await apiClient.patch<ApiResponse<Profile>>(ENDPOINTS.PROFILE.UPDATE, data);
         return response.data.data;
     },
 
     changePassword: async (data: { currentPassword: string; newPassword: string; confirmNewPassword: string }): Promise<void> => {
-        await apiClient.put(ENDPOINTS.PROFILE.CHANGE_PASSWORD, data);
+        await apiClient.patch(ENDPOINTS.PROFILE.CHANGE_PASSWORD, data);
     },
 
     getAllUsers: async (): Promise<User[]> => {

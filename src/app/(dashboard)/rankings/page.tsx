@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { Trophy, Medal, Crown, TrendingUp, Shield, Star, Award } from 'lucide-react';
+import { Crown, TrendingUp } from 'lucide-react';
 
 export default function RankingsPage() {
     const topPlayers = [

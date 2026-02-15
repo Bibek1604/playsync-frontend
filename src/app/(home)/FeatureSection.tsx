@@ -8,7 +8,6 @@ import {
   ShieldCheck,
   Zap,
   Star,
-  LayoutGrid,
 } from "lucide-react";
 
 function CTASection() {
@@ -45,7 +44,7 @@ function CTASection() {
                     </span>
                   </h2>
                   <p className="text-xl text-slate-500 leading-relaxed max-w-xl font-medium">
-                    Experience PlaySync—the world's most refined player matching
+                    Experience PlaySync—the world&apos;s most refined player matching
                     network. Designed for gamers who demand excellence and zero
                     toxicity.
                   </p>

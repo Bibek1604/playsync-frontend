@@ -9,13 +9,15 @@ import {
     Users,
     Trophy,
     MessageSquare,
-    Activity,
     Settings,
     LogOut,
     ChevronLeft,
     ChevronRight,
     Zap,
 } from "lucide-react";
+
+import { useQuery } from "@tanstack/react-query";
+import { gameService } from "@/features/games/api/game-service";
 
 export default function Sidebar() {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -24,6 +26,14 @@ export default function Sidebar() {
     const logout = useAuthStore((state) => state.logout);
     const user = useAuthStore((state) => state.user);
     const profile = useAuthStore((state) => state.profile);
+
+    const { data: joinedGamesData } = useQuery({
+        queryKey: ['myJoinedGames'],
+        queryFn: () => gameService.getMyJoined(),
+        enabled: !!user
+    });
+
+    const joinedGames = joinedGamesData?.games || [];
 
     const handleLogout = async () => {
         await logout();
@@ -107,6 +117,43 @@ export default function Sidebar() {
                         </Link>
                     );
                 })}
+
+                {/* --- Joined Games Section --- */}
+                {!isCollapsed && joinedGames.length > 0 && (
+                    <div className="pt-6 pb-2">
+                        <h3 className="px-4 text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
+                            Joined Games
+                        </h3>
+                        <div className="space-y-1">
+                            {joinedGames.map((game) => {
+                                const gameHref = `/games/${game.category.toLowerCase()}/${game._id}`;
+                                const isActive = pathname === gameHref;
+                                return (
+                                    <Link
+                                        key={game._id}
+                                        href={gameHref}
+                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${isActive
+                                            ? "bg-emerald-50 text-emerald-600"
+                                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                                            }`}
+                                    >
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? "bg-emerald-200 text-emerald-700" : "bg-slate-100 text-slate-400"}`}>
+                                            {game.imageUrl ? (
+                                                <img src={game.imageUrl} alt={game.title} className="w-full h-full object-cover rounded-lg" />
+                                            ) : (
+                                                <span className="text-xs font-bold">{game.title.substring(0, 1)}</span>
+                                            )}
+                                        </div>
+                                        <span className="text-sm font-semibold truncate">
+                                            {game.title}
+                                        </span>
+                                        {isActive && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 ml-auto" />}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
             </nav>
 
             {/* --- Bottom Section: Player Card --- */}
@@ -120,11 +167,11 @@ export default function Sidebar() {
                         <div className="relative z-10">
                             <div className="flex items-center gap-3 mb-3">
                                 <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-slate-950 overflow-hidden">
-                                    {(profile?.profilePicture || user?.profilePicture) ? (
+                                    {profile?.profilePicture ? (
                                         <img
-                                            src={(profile?.profilePicture || user?.profilePicture)?.startsWith('http')
-                                                ? (profile?.profilePicture || user?.profilePicture)
-                                                : `http://localhost:5000${profile?.profilePicture || user?.profilePicture}`}
+                                            src={profile.profilePicture.startsWith('http')
+                                                ? profile.profilePicture
+                                                : `http://localhost:5000${profile.profilePicture}`}
                                             alt="Profile"
                                             className="w-full h-full object-cover"
                                         />
@@ -137,7 +184,7 @@ export default function Sidebar() {
                                         Pro Active
                                     </p>
                                     <p className="text-xs font-bold truncate max-w-[120px]">
-                                        {profile?.fullName || user?.fullName || "Ghost_Main"}
+                                        {(profile?.fullName || user?.fullName || "Ghost_Main").split(' ')[0]}
                                     </p>
                                 </div>
                             </div>
@@ -155,11 +202,11 @@ export default function Sidebar() {
                             onClick={() => router.push('/settings')}
                             className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-emerald-500 cursor-pointer hover:bg-emerald-600 hover:text-white transition-all overflow-hidden"
                         >
-                            {(profile?.profilePicture || user?.profilePicture) ? (
+                            {profile?.profilePicture ? (
                                 <img
-                                    src={(profile?.profilePicture || user?.profilePicture)?.startsWith('http')
-                                        ? (profile?.profilePicture || user?.profilePicture)
-                                        : `http://localhost:5000${profile?.profilePicture || user?.profilePicture}`}
+                                    src={profile.profilePicture.startsWith('http')
+                                        ? profile.profilePicture
+                                        : `http://localhost:5000${profile.profilePicture}`}
                                     alt="Profile"
                                     className="w-full h-full object-cover"
                                 />

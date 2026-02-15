@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Users, LogOut, LayoutDashboard } from 'lucide-react';
+import { Users, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/auth-store';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -40,8 +40,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 key={item.name}
                                 href={item.href}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                                        ? 'bg-emerald-50 text-emerald-600 font-semibold shadow-sm ring-1 ring-emerald-100'
-                                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                                    ? 'bg-emerald-50 text-emerald-600 font-semibold shadow-sm ring-1 ring-emerald-100'
+                                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                                     }`}
                             >
                                 <item.icon size={20} />

@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  User, MapPin, Globe, Gamepad2, Lock,
-  Save, ArrowLeft, Camera
+  User, MapPin, Globe, Gamepad2,
+  Save, ArrowLeft
 } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/auth-store';
 import { useRouter } from 'next/navigation';
@@ -28,6 +28,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (profile) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
         fullName: profile.fullName || '',
         profilePicture: profile.profilePicture || '',
@@ -45,7 +46,7 @@ export default function ProfilePage() {
     // Here we'll pass the object directly assuming the store handles it,
     // or we might need to conform to what updateProfile expects.
     // Based on previous files, updateProfile expects Profile | FormData.
-    const success = await updateProfile(formData as any);
+    const success = await updateProfile(formData);
     if (success) {
       console.log("Profile updated successfully");
     }
