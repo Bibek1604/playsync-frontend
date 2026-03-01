@@ -46,7 +46,11 @@ export interface Game {
     cancelledAt?: string;
     completedAt?: string;
     category: 'ONLINE' | 'OFFLINE';
-    location?: string;
+    locationName?: string;
+    location?: {
+        type: 'Point';
+        coordinates: number[];
+    };
     createdAt: string;
     updatedAt: string;
 }
@@ -82,5 +86,9 @@ export interface QueryParams {
     status?: string;
     sortBy?: string;
     order?: 'asc' | 'desc';
+    category?: 'ONLINE' | 'OFFLINE';
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
     [key: string]: string | number | undefined;
 }
