@@ -8,6 +8,8 @@ export const ENDPOINTS = {
         LOGOUT: '/api/v1/auth/logout',
         ME: '/api/v1/auth/me',
         USERS: '/api/v1/auth/users',
+        FORGOT_PASSWORD: '/api/v1/auth/forgot-password',
+        RESET_PASSWORD: '/api/v1/auth/reset-password',
     },
     PROFILE: {
         GET: '/api/v1/profile',
@@ -37,6 +39,7 @@ export const ENDPOINTS = {
     },
     SCORECARD: {
         GET: '/api/v1/scorecard',
+        TREND: '/api/v1/scorecard/trend',
     },
     LEADERBOARD: {
         LIST: '/api/v1/leaderboard',
@@ -58,3 +61,12 @@ export const ENDPOINTS = {
         MARK_READ: (id: string) => `/api/v1/notifications/${id}/read`,
     },
 };
+
+export const getImageUrl = (url?: string): string | undefined => {
+    if (!url) return undefined;
+    if (url.startsWith('/uploads')) {
+        return `${API_URL}${url}`;
+    }
+    return url;
+};
+

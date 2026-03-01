@@ -1,194 +1,222 @@
 "use client";
-import React from 'react';
-import { Crown, TrendingUp } from 'lucide-react';
+
+import React, { useState } from 'react';
+import { Search, Trophy, TrendingUp, ArrowUpRight, Crown, Medal, Star, Zap, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { leaderboardService } from '@/features/leaderboard/api/leaderboard-service';
 import { scorecardService } from '@/features/scorecard/api/scorecard-service';
-import { API_URL } from '@/lib/constants';
-
+import { API_URL, getImageUrl } from '@/lib/constants';
 import { useAuthStore } from '@/features/auth/store/auth-store';
+import { Avatar } from '@/components/ui';
+
+const rankConfig = [
+    { icon: Crown, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100', label: '1st Place' },
+    { icon: Trophy, color: 'text-gray-400', bg: 'bg-gray-50', border: 'border-gray-200', label: '2nd Place' },
+    { icon: Medal, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', label: '3rd Place' },
+];
 
 export default function RankingsPage() {
-    const user = useAuthStore((state) => state.user);
+    const router = useRouter();
+    const currentUser = useAuthStore((state) => state.user);
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [mounted, setMounted] = React.useState(false);
 
-    const { data: leaderboardData, isLoading } = useQuery({
+    React.useEffect(() => { setMounted(true); }, []);
+
+    const { data: players = [], isLoading } = useQuery({
         queryKey: ['leaderboard'],
         queryFn: () => leaderboardService.getLeaderboard({ limit: 50, page: 1, period: 'all' })
     });
 
-    const { data: myScorecard, isLoading: isMyRankLoading } = useQuery({
-        queryKey: ['myScorecard'],
-        queryFn: scorecardService.getMyScorecard,
-        enabled: !!user
+    const { data: scorecard } = useQuery({
+        queryKey: ['scorecard'],
+        queryFn: () => scorecardService.getMyScorecard(),
+        enabled: isAuthenticated,
+        staleTime: 30_000,
     });
 
-    const players = leaderboardData || [];
-    const top1 = players[0];
-    const top2 = players[1];
-    const top3 = players[2];
-    const restList = players.slice(3);
+    const myXp = scorecard?.xp ?? 0;
+    const myLevel = scorecard?.level ?? 1;
 
-    const getAvatarUrl = (url?: string) => {
-        if (!url) return null;
-        return url.startsWith('http') ? url : `${API_URL}${url}`;
-    };
+    const myRank = React.useMemo(() => {
+        const userId = (currentUser as any)?._id || currentUser?.id;
+        const idx = players.findIndex((p: any) => p.userId === userId);
+        return idx >= 0 ? idx + 1 : (scorecard?.rank ?? null);
+    }, [players, currentUser, scorecard]);
 
-    const getTier = (points: number = 0) => {
-        if (points >= 3000) return 'Diamond';
-        if (points >= 2000) return 'Platinum';
-        if (points >= 1000) return 'Gold';
-        if (points >= 500) return 'Silver';
-        return 'Bronze';
-    };
+    const filteredPlayers = players.filter((p: any) =>
+        (p.fullName || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-    const getTierColor = (tier: string) => {
-        switch (tier) {
-            case 'Diamond': return 'text-cyan-500 bg-cyan-50';
-            case 'Platinum': return 'text-violet-500 bg-violet-50';
-            case 'Gold': return 'text-amber-500 bg-amber-50';
-            case 'Silver': return 'text-slate-500 bg-slate-100';
-            default: return 'text-orange-700 bg-orange-50'; // Bronze
-        }
-    };
+    const top3 = players.slice(0, 3);
+    const rest = filteredPlayers.slice(3);
 
-    if (isLoading) {
-        return <div className="p-8 text-center text-slate-500">Loading rankings...</div>;
-    }
+    // Podium indices: [2nd, 1st, 3rd]
+    const podiumOrder = top3.length >= 3 ? [players[1], players[0], players[2]] : players;
+    const podiumRanks = top3.length >= 3 ? [1, 0, 2] : [0, 1, 2];
 
     return (
-        <div className="space-y-8 animate-fade-in">
-            {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Global Rankings</h1>
-                <p className="text-slate-500 mt-2 font-medium">Top performing players this season</p>
+        <div className="max-w-6xl mx-auto space-y-12 py-8 animate-in">
+
+            {/* Header Section */}
+            <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-green-50/30 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none" />
+                <div className="relative z-10">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-100 rounded-full text-[10px] font-bold uppercase tracking-widest text-green-600 mb-4">
+                        <Trophy size={12} className="fill-current" />
+                        Global Standings
+                    </div>
+                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
+                        Hall of <span className="text-green-600 italic">Legends</span>
+                    </h1>
+                    <p className="text-gray-500 font-medium text-lg">
+                        Recognizing the elite performers ranked by total XP growth.
+                    </p>
+                </div>
+
+                <div className="relative w-full md:w-[320px] z-10">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                        type="text"
+                        placeholder="Search legends..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-12 pr-6 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-4 focus:ring-green-50 focus:border-green-400 transition-all outline-none"
+                    />
+                </div>
             </div>
 
-            {/* My Rank Card */}
-            {myScorecard && (
-                <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white flex items-center justify-between shadow-lg mb-8">
-                    <div>
-                        <p className="text-slate-400 text-sm font-bold uppercase tracking-wider mb-1">Your Current Rank</p>
-                        <h2 className="text-3xl font-black">
-                            {myScorecard.rank ? `#${myScorecard.rank}` : 'Unranked'}
-                            <span className="ml-3 text-lg font-medium text-slate-400">
-                                {getTier(myScorecard.points || (myScorecard as any).totalPoints)} Tier
-                            </span>
-                        </h2>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-3xl font-black text-emerald-400">{myScorecard.points || (myScorecard as any).totalPoints || 0}</p>
-                        <p className="text-xs text-slate-400 font-bold uppercase">Points</p>
-                    </div>
+            {/* Podium Section */}
+            {!searchQuery && top3.length >= 3 && (
+                <div className="grid grid-cols-3 gap-4 md:gap-8 items-end max-w-4xl mx-auto pt-8">
+                    {podiumOrder.map((player, i) => {
+                        const rankIdx = podiumRanks[i];
+                        const cfg = rankConfig[rankIdx];
+                        const isWinner = rankIdx === 0;
+
+                        return (
+                            <div key={i} className={`flex flex-col items-center ${isWinner ? 'order-2' : i === 0 ? 'order-1' : 'order-3'}`}>
+                                <div className="relative mb-6">
+                                    <div className={`rounded-full overflow-hidden ${isWinner ? 'w-24 h-24 ring-8 ring-green-100' : 'w-16 h-16 ring-4 ring-gray-100'} shadow-lg`}>
+                                        <Avatar
+                                            src={getImageUrl(player.avatar ?? undefined)}
+                                            fallback={player.fullName ?? ''}
+                                            size={isWinner ? 'xl' : 'lg'}
+                                            className={`w-full h-full rounded-full ${isWinner ? 'border-4 border-amber-400' : 'border-2 border-gray-200'}`}
+                                        />
+                                    </div>
+                                    <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-lg p-2 shadow-md ${cfg.bg} ${cfg.border} border-2`}>
+                                        <cfg.icon className={`w-5 h-5 ${cfg.color} fill-current`} />
+                                    </div>
+                                </div>
+
+                                <div className="text-center space-y-1">
+                                    <h4 className={`font-bold tracking-tight ${isWinner ? 'text-xl' : 'text-base'} text-gray-900`}>
+                                        {player.fullName}
+                                    </h4>
+                                    <p className="text-green-600 font-bold text-sm">
+                                        {player.xp.toLocaleString()} <span className="text-[10px] text-gray-400 uppercase">XP</span>
+                                    </p>
+                                    <div className="flex justify-center">
+                                        <span className="bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase">
+                                            Lvl {player.level}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Podium Base */}
+                                <div
+                                    className={`w-full mt-6 rounded-t-xl border-x border-t border-gray-100 flex items-center justify-center font-black text-gray-200 text-4xl shadow-inner`}
+                                    style={{ height: isWinner ? '160px' : i === 0 ? '120px' : '100px', background: 'linear-gradient(180deg, #f9fafb 0%, white 100%)' }}
+                                >
+                                    {rankIdx + 1}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 
-            {players.length > 0 ? (
-                <>
-                    {/* Top 3 Podium */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end mb-12">
-                        {/* 2nd Place */}
-                        {top2 && (
-                            <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col items-center relative order-2 md:order-1 mt-8 md:mt-0">
-                                <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-600 font-black flex items-center justify-center absolute -top-4 shadow-sm border-2 border-white">
-                                    2
-                                </div>
-                                <div className="w-20 h-20 bg-slate-100 rounded-full mb-4 flex items-center justify-center overflow-hidden border-2 border-slate-50">
-                                    {top2.userId.avatar ? (
-                                        <img src={getAvatarUrl(top2.userId.avatar) || ''} alt={top2.userId.fullName} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <span className="text-2xl font-black text-slate-400">{top2.userId.fullName[0]}</span>
-                                    )}
-                                </div>
-                                <h3 className="font-bold text-lg text-slate-900 line-clamp-1">{top2.userId.fullName}</h3>
-                                <p className="text-sm font-bold text-slate-400">{top2.points} pts</p>
-                                <div className={`mt-4 px-3 py-1 rounded-full text-xs font-bold ${getTierColor(getTier(top2.points))}`}>
-                                    {getTier(top2.points)}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 1st Place */}
-                        {top1 && (
-                            <div className="bg-slate-900 p-8 rounded-[2rem] text-white flex flex-col items-center relative order-1 md:order-2 shadow-xl shadow-slate-200 transform md:-translate-y-4">
-                                <div className="absolute -top-6">
-                                    <Crown size={40} className="text-yellow-400 fill-yellow-400 drop-shadow-lg" />
-                                </div>
-                                <div className="w-24 h-24 bg-emerald-500 rounded-full mb-4 flex items-center justify-center overflow-hidden border-4 border-slate-800">
-                                    {top1.userId.avatar ? (
-                                        <img src={getAvatarUrl(top1.userId.avatar) || ''} alt={top1.userId.fullName} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <span className="text-3xl font-black text-slate-900">{top1.userId.fullName[0]}</span>
-                                    )}
-                                </div>
-                                <h3 className="font-bold text-xl line-clamp-1">{top1.userId.fullName}</h3>
-                                <p className="text-sm font-bold text-emerald-400">{top1.points} pts</p>
-                                <div className="mt-6 w-full bg-white/10 rounded-xl p-3 text-center">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Rank</p>
-                                    <p className="font-bold text-yellow-400 text-lg">#1 Champion</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 3rd Place */}
-                        {top3 && (
-                            <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col items-center relative order-3 mt-8 md:mt-0">
-                                <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-black flex items-center justify-center absolute -top-4 shadow-sm border-2 border-white">
-                                    3
-                                </div>
-                                <div className="w-20 h-20 bg-slate-100 rounded-full mb-4 flex items-center justify-center overflow-hidden border-2 border-slate-50">
-                                    {top3.userId.avatar ? (
-                                        <img src={getAvatarUrl(top3.userId.avatar) || ''} alt={top3.userId.fullName} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <span className="text-2xl font-black text-slate-400">{top3.userId.fullName[0]}</span>
-                                    )}
-                                </div>
-                                <h3 className="font-bold text-lg text-slate-900 line-clamp-1">{top3.userId.fullName}</h3>
-                                <p className="text-sm font-bold text-slate-400">{top3.points} pts</p>
-                                <div className={`mt-4 px-3 py-1 rounded-full text-xs font-bold ${getTierColor(getTier(top3.points))}`}>
-                                    {getTier(top3.points)}
-                                </div>
-                            </div>
-                        )}
+            {/* Rankings List */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-gray-900">Current Rankings</h3>
+                    <div className="flex gap-2">
+                        <span className="text-xs font-semibold text-gray-400">Total Players:</span>
+                        <span className="text-xs font-bold text-gray-900">{players.length}</span>
                     </div>
+                </div>
 
-                    {/* List */}
-                    <div className="bg-white border border-slate-100 rounded-[2rem] overflow-hidden shadow-sm">
-                        <div className="p-6 border-b border-slate-50 flex items-center justify-between">
-                            <h3 className="font-bold text-lg text-slate-900">Leaderboard</h3>
-                        </div>
-                        <div className="divide-y divide-slate-50">
-                            {restList.map((player) => (
-                                <div key={player.rank} className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
-                                    <div className="w-8 font-black text-slate-300 text-center">{player.rank}</div>
-                                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-slate-500 overflow-hidden">
-                                        {player.userId.avatar ? (
-                                            <img src={getAvatarUrl(player.userId.avatar) || ''} alt={player.userId.fullName} className="w-full h-full object-cover" />
-                                        ) : (
-                                            player.userId.fullName[0]
+                <div className="divide-y divide-slate-50 overflow-x-auto">
+                    {(searchQuery ? filteredPlayers : rest).map((player: any, i: number) => {
+                        const rank = searchQuery ? players.findIndex((p: any) => p.userId === player.userId) + 1 : i + 4;
+                        const isMe = (currentUser as any)?._id === player.userId || currentUser?.id === player.userId;
+
+                        return (
+                            <div
+                                key={i}
+                                className={`flex items-center gap-6 p-5 transition-all hover:bg-gray-50 group cursor-pointer ${isMe ? 'bg-green-50/50' : ''}`}
+                            >
+                                <div className="w-8 flex justify-center text-sm font-bold text-gray-300 group-hover:text-green-600 transition-colors">
+                                    #{rank}
+                                </div>
+                                <Avatar
+                                    src={getImageUrl(player.avatar ?? undefined)}
+                                    fallback={player.fullName ?? ''}
+                                    size="sm"
+                                    className="ring-2 ring-white shadow-sm"
+                                />
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <h5 className="font-bold text-gray-900 truncate">{player.fullName}</h5>
+                                        {isMe && (
+                                            <span className="bg-green-100 text-green-700 text-[8px] font-bold px-1.5 py-0.5 rounded leading-none uppercase">You</span>
                                         )}
                                     </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-slate-900">{player.userId.fullName}</h4>
-                                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${getTierColor(getTier(player.points))}`}>
-                                            {getTier(player.points)}
-                                        </span>
-                                    </div>
-                                    <div className="text-right mr-4">
-                                        <p className="font-bold text-slate-900">{player.points} pts</p>
-                                    </div>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Level {player.level}</p>
                                 </div>
-                            ))}
-                            {restList.length === 0 && (
-                                <div className="p-8 text-center text-slate-400 text-sm">
-                                    End of list
+                                <div className="text-right flex flex-col items-end gap-1">
+                                    <p className="font-extrabold text-green-600 text-base leading-none">
+                                        {player.xp.toLocaleString()} <span className="text-[8px] text-gray-400">XP</span>
+                                    </p>
+                                    <p className="text-[10px] font-bold text-green-500 uppercase">{player.wins} Wins</p>
                                 </div>
-                            )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Current User Summary Sticky Bottom */}
+            {mounted && isAuthenticated && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30">
+                    <div className="bg-white text-gray-900 rounded-2xl px-5 py-3.5 flex items-center gap-5 shadow-xl border border-gray-100">
+                        <div className="flex items-center gap-2 pr-5 border-r border-gray-100 text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+                            <Trophy size={13} className="text-amber-400" />
+                            Your Status
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <Avatar
+                                src={getImageUrl(((currentUser as any)?.profilePicture || (currentUser as any)?.avatar) ?? undefined)}
+                                fallback={currentUser?.fullName ?? ''}
+                                size="sm"
+                                className="ring-2 ring-green-400"
+                            />
+                            <div>
+                                <h4 className="font-bold text-sm leading-none mb-1 text-gray-900">{currentUser?.fullName}</h4>
+                                <div className="flex items-center gap-3">
+                                    <p className="text-[10px] font-bold text-green-600 uppercase">Lvl {myLevel}</p>
+                                    <p className="text-[10px] font-bold text-green-600 uppercase">{myXp.toLocaleString()} XP</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="pl-5 border-l border-gray-100">
+                            <h3 className="text-2xl font-extrabold text-gray-900">#{myRank || '—'}</h3>
+                            <p className="text-[9px] font-bold uppercase tracking-tighter text-gray-400">Global Rank</p>
                         </div>
                     </div>
-                </>
-            ) : (
-                <div className="text-center py-20 bg-white rounded-[2rem]">
-                    <p className="text-slate-500">No ranked players found.</p>
                 </div>
             )}
         </div>

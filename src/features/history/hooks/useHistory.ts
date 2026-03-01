@@ -4,12 +4,13 @@ import { Game, QueryParams } from '@/types';
 
 export const useHistory = (params?: QueryParams) => {
     const {
-        data: history,
+        data: historyData,
         isLoading: isHistoryLoading,
         error: historyError
     } = useQuery({
         queryKey: ['history', params],
-        queryFn: () => historyService.getMyHistory(params)
+        queryFn: () => historyService.getMyHistory(params),
+        staleTime: 30000, // Consider data fresh for 30 seconds
     });
 
     const {
@@ -18,7 +19,8 @@ export const useHistory = (params?: QueryParams) => {
         error: statsError
     } = useQuery({
         queryKey: ['history', 'stats'],
-        queryFn: historyService.getStats
+        queryFn: historyService.getStats,
+        staleTime: 60000, // Stats change less frequently
     });
 
     const {
@@ -26,14 +28,17 @@ export const useHistory = (params?: QueryParams) => {
         isLoading: isCountLoading
     } = useQuery({
         queryKey: ['history', 'count'],
-        queryFn: historyService.getCount
+        queryFn: historyService.getCount,
+        staleTime: 60000,
     });
 
     return {
-        history,
+        history: historyData?.history || [],
+        pagination: historyData?.pagination,
         stats,
         count,
         isLoading: isHistoryLoading || isStatsLoading || isCountLoading,
         error: historyError || statsError,
     };
 };
+
