@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, Check, Trash2, X } from 'lucide-react';
+import { Bell, Check } from 'lucide-react';
 import { useNotifications } from '@/features/notifications/hooks/useNotifications';
 
 export default function NotificationDropdown() {
@@ -13,7 +13,6 @@ export default function NotificationDropdown() {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Close on click outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -28,10 +27,6 @@ export default function NotificationDropdown() {
 
     const handleNotificationClick = (id: string, link?: string) => {
         markAsRead(id);
-        if (link) {
-            // Navigate to link if provided
-            // router.push(link);
-        }
     };
 
     return (
@@ -40,9 +35,9 @@ export default function NotificationDropdown() {
                 onClick={() => setIsOpen(!isOpen)}
                 className="relative p-2.5 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-emerald-600 transition-all border border-transparent hover:border-slate-100"
             >
-                <Bell size={22} className={unreadCount > 0 ? "animate-wiggle" : ""} />
+                <Bell size={20} className={unreadCount > 0 ? "animate-wiggle" : ""} />
                 {unreadCount > 0 && (
-                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
+                    <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
                 )}
             </button>
 
@@ -65,10 +60,10 @@ export default function NotificationDropdown() {
                             <div className="p-8 text-center text-slate-400">Loading...</div>
                         ) : notifications.length === 0 ? (
                             <div className="p-8 text-center flex flex-col items-center gap-3">
-                                <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
-                                    <Bell size={20} />
+                                <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-200">
+                                    <Bell size={24} />
                                 </div>
-                                <p className="text-sm font-medium text-slate-400">No new notifications</p>
+                                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No activity</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-slate-50">
@@ -78,16 +73,16 @@ export default function NotificationDropdown() {
                                         onClick={() => handleNotificationClick(notification._id, notification.link)}
                                         className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer ${!notification.read ? 'bg-emerald-50/30' : ''}`}
                                     >
-                                        <div className="flex gap-3">
-                                            <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${!notification.read ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+                                        <div className="flex gap-4">
+                                            <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${!notification.read ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-100'}`} />
                                             <div className="flex-1 space-y-1">
-                                                <p className={`text-sm ${!notification.read ? 'font-bold text-slate-800' : 'font-medium text-slate-600'}`}>
+                                                <p className={`text-sm tracking-tight ${!notification.read ? 'font-black text-slate-800' : 'font-bold text-slate-500'}`}>
                                                     {notification.title}
                                                 </p>
                                                 <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
                                                     {notification.message}
                                                 </p>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-2">
+                                                <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mt-2">
                                                     {new Date(notification.createdAt).toLocaleDateString()}
                                                 </p>
                                             </div>
@@ -98,9 +93,9 @@ export default function NotificationDropdown() {
                         )}
                     </div>
 
-                    <div className="p-2 border-t border-slate-50 bg-slate-50/50 text-center">
-                        <button className="text-xs font-bold text-slate-500 hover:text-slate-800">
-                            View All History
+                    <div className="p-3 bg-slate-50 text-center">
+                        <button className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-emerald-600 transition-colors">
+                            Dismiss All
                         </button>
                     </div>
                 </div>
