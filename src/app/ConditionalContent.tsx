@@ -1,33 +1,20 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Providers } from "./providers";
 import { Footer } from "./layout/Footer";
 
 
 export function ConditionalContent({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isDashboard = pathname.startsWith('/dashboard') || pathname.startsWith('/games');
-
-  if (isDashboard) {
-    return (
-      <>
-        <main className="flex-grow">
-          <Providers>
-            {children}
-          </Providers>
-        </main>
-        <Footer />
-      </>
-    );
-  }
+  /* 
+     We keep the hook call if needed for future logic, 
+     but currently we render the same structure for all routes.
+  */
+  // const pathname = usePathname(); 
 
   return (
     <>
       <main className="flex-grow">
-        <Providers>
-          {children}
-        </Providers>
+        {children}
       </main>
       <Footer />
     </>
