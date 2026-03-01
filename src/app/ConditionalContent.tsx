@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Footer } from "./layout/Footer";
+import { Footer } from "./layout/footer";
 
 
 export function ConditionalContent({ children }: { children: React.ReactNode }) {

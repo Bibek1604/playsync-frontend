@@ -10,9 +10,10 @@ import { toast } from '@/lib/toast';
 function ResetPasswordForm() {
     const searchParams = useSearchParams();
     const emailParam = searchParams?.get('email') || '';
+    const otpParam = searchParams?.get('otp') || '';
 
     const [email, setEmail] = useState(emailParam);
-    const [otp, setOtp] = useState('');
+    const [otp, setOtp] = useState(otpParam.replace(/\D/g, '').slice(0, 6));
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -24,12 +25,15 @@ function ResetPasswordForm() {
 
     const router = useRouter();
 
-    // Keep email synced if param changes
+    // Keep email and otp synced if params change
     useEffect(() => {
         if (emailParam) {
             setEmail(emailParam);
         }
-    }, [emailParam]);
+        if (otpParam) {
+            setOtp(otpParam.replace(/\D/g, '').slice(0, 6));
+        }
+    }, [emailParam, otpParam]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -46,8 +50,16 @@ function ResetPasswordForm() {
             await authService.resetPassword({ email, otp, newPassword, confirmPassword });
             toast.success('Password updated successfully! Please sign in.');
             router.push('/auth/login');
-        } catch (err: any) {
-            setError(err?.response?.data?.message || 'Failed to reset password. Please check your details.');
+        } catch (err: unknown) {
+            const message =
+                typeof err === 'object' &&
+                err !== null &&
+                'response' in err &&
+                typeof (err as { response?: { data?: { message?: string } } }).response?.data?.message === 'string'
+                    ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+                    : null;
+
+            setError(message || 'Failed to reset password. Please check your details.');
         } finally {
             setIsLoading(false);
         }
@@ -55,8 +67,19 @@ function ResetPasswordForm() {
 
     return (
         <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Hidden email (or shown as read-only) */}
-            <input type="hidden" value={email} />
+            {/* Email - Read only display */}
+            <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 pl-1">Email Address</label>
+                <div className="relative group">
+                    <input
+                        type="email"
+                        value={email}
+                        placeholder="your@email.com"
+                        readOnly
+                        className="w-full px-4 py-3.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 cursor-not-allowed"
+                    />
+                </div>
+            </div>
 
             <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 pl-1">OTP (6-digit code)</label>
@@ -146,12 +169,12 @@ export default function ResetPasswordPage() {
         <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-white font-poppins">
             {/* Background patterns */}
             <div className="absolute inset-0 pointer-events-none opacity-40">
-                <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-green-50/20 rounded-full blur-[120px] -mr-96 -mt-96" />
-                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-green-50/10 rounded-full blur-[100px] -ml-64 -mb-64" />
-                <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#e5e7eb 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+                <div className="absolute top-0 right-0 w-200 h-200 bg-green-50/20 rounded-full blur-[120px] -mr-96 -mt-96" />
+                <div className="absolute bottom-0 left-0 w-150 h-150 bg-green-50/10 rounded-full blur-[100px] -ml-64 -mb-64" />
+                <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[40px_40px]" />
             </div>
 
-            <div className="w-full max-w-[440px] relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="w-full max-w-110 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 {/* Brand */}
                 <div className="text-center mb-10">
                     <Link href="/" className="inline-flex items-center gap-3 mb-8 group">
