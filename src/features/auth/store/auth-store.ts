@@ -4,6 +4,7 @@ import { AxiosError } from 'axios';
 import { authService } from '../api/auth-service';
 import { configureAuth } from '@/lib/api-client';
 import { User, Profile, LoginCredentials, RegisterCredentials } from '@/types';
+import { disconnectSocket } from '@/lib/socket';
 
 interface AuthState {
     user: User | null;
@@ -84,6 +85,7 @@ export const useAuthStore = create<AuthState>()(
                 } catch {
                     // Ignore logout errors
                 } finally {
+                    disconnectSocket(); // Ensure socket is disconnected
                     get().clearAuth();
                 }
             },
