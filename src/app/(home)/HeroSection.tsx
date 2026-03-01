@@ -61,12 +61,14 @@ function HeroSection() {
             </div>
 
             <div className="space-y-6">
-              <h1 className="text-6xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none">
-                PlaySync <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
-                  Pro-Elite.
-                </span>
-              </h1>
+              <div className="space-y-4">
+                <img src="/p.svg" alt="PlaySync Logo" className="h-64 lg:h-80 w-auto" />
+                <h1 className="text-6xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
+                    Pro-Elite.
+                  </span>
+                </h1>
+              </div>
               <p className="text-lg text-slate-600 leading-relaxed max-w-md">
                 Stop gambling with random teammates. Connect with verified
                 high-performance players through our professional-grade
@@ -190,7 +192,7 @@ function HeroSection() {
 
             {/* Floating Decorative Elements that also "Move" subtly */}
             <div className="absolute -top-6 -right-6 p-4 bg-white rounded-2xl shadow-xl border border-slate-100 animate-bounce-slow">
-              <Zap className="w-6 h-6 text-emerald-500 fill-emerald-500" />
+              <img src="/p.svg" alt="Logo" className="w-8 h-8" />
             </div>
             <div className="absolute -bottom-4 -left-4 p-4 bg-white rounded-2xl shadow-xl border border-slate-100">
               <Target className="w-6 h-6 text-slate-800" />
