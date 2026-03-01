@@ -1,17 +1,35 @@
-
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { gameService } from '@/features/games/api/game-service';
 import { useGameStore } from '@/features/games/store/game-store';
 import { useAuthStore } from '@/features/auth/store/auth-store';
-import { useGameChat } from '@/features/chat/hooks/useGameChat'; // Import hook
+import { useGameChat } from '@/features/chat/hooks/useGameChat';
 import { getSocket } from '@/lib/socket';
-import { Game } from '@/types';
-import { Send, LogOut, Users, MessageSquare, Gamepad2, ChevronDown, ChevronUp } from 'lucide-react'; // Icons
-import { ParticipantsSidebar } from '@/features/games/components/ParticipantsSidebar';
+import { Zap, ShieldAlert, MessageSquare, LogOut, Trash2, Smile } from 'lucide-react';
+import { toast } from '@/lib/toast';
+import { ConfirmModal, useModal, Button } from '@/components/ui';
+
+import { ChatLayout } from '@/features/chat/components/ChatLayout';
+import { ChatHeader } from '@/features/chat/components/ChatHeader';
+import { ParticipantsSidebar } from '@/features/chat/components/ParticipantsSidebar';
+import { MessageBubble } from '@/features/chat/components/MessageBubble';
+import { MessageInput } from '@/features/chat/components/MessageInput';
+
+/* ── date label helper ── */
+function getDateLabel(date: Date): string {
+  const now = new Date();
+  const d = new Date(date);
+  const isToday = d.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+  if (isToday) return 'Today';
+  if (isYesterday) return 'Yesterday';
+  return d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+}
 
 export default function GamePage() {
   const { gameId } = useParams() as { gameId: string };
@@ -19,59 +37,58 @@ export default function GamePage() {
   const queryClient = useQueryClient();
   const { accessToken, user } = useAuthStore();
 
-  // Game Store Actions
-  const {
-    activeGame,
-    enterGame,
-    leaveGame,
-    addParticipant,
-    removeParticipant
-  } = useGameStore();
+  const { enterGame, leaveGame, addParticipant, removeParticipant } = useGameStore();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const leaveModal = useModal();
 
-  const [isPlayersExpanded, setIsPlayersExpanded] = useState(true);
-
-  // 1. Fetch Game Data
   const { data: game, isLoading, error } = useQuery({
     queryKey: ['game', gameId],
     queryFn: () => gameService.getById(gameId),
     enabled: !!gameId,
-    retry: 1
+    retry: 1,
   });
 
-  // 2. Chat Hook
-  const { messages, input, setInput, sendMessage, isLoading: isChatLoading } = useGameChat(gameId);
+  const { messages, sendMessage } = useGameChat(gameId);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  /* ── scroll to bottom on new messages ── */
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // 3. Sync with Store & Socket Logic
+  /* ── Auth & participation guard ── */
   useEffect(() => {
-    if (!game || !accessToken) return;
+    if (!game || !user || isLoading) return;
+    const userId = user.id || (user as any)._id;
+    const creatorId = typeof game.creatorId === 'object' ? (game.creatorId as any)._id : game.creatorId;
+    const isCreator = userId && creatorId && userId.toString() === creatorId.toString();
 
-    // Enter Game Mode
-    enterGame(game);
-    const socket = getSocket(accessToken);
-
-    // Join Lobby
-    socket.emit('game:join', gameId, (response: any) => {
-      if (!response?.success) {
-        console.error('Failed to join game lobby:', response?.error);
-      }
+    const isParticipant = game.participants?.some((p) => {
+      const pId = typeof p.userId === 'object' ? (p.userId as any)._id || (p.userId as any).id : p.userId;
+      return pId && userId && pId.toString() === userId.toString();
     });
 
-    // Listeners
+    const isFull = (game.currentPlayers || 0) >= (game.maxPlayers || 0);
+    if (isFull && !isCreator && !isParticipant) {
+      toast.error('This game is at full capacity.');
+      router.push('/games/online');
+    }
+  }, [game, user, isLoading, router]);
+
+  /* ── Socket & store sync ── */
+  useEffect(() => {
+    if (!game || !accessToken) return;
+    enterGame(game);
+    const socket = getSocket(accessToken);
+    socket.emit('game:join', gameId);
+
     const handlePlayerJoined = (payload: any) => {
-      console.log('Player Joined:', payload);
       addParticipant(payload);
       queryClient.invalidateQueries({ queryKey: ['game', gameId] });
     };
-
     const handlePlayerLeft = (payload: any) => {
-      console.log('Player Left:', payload);
       removeParticipant(payload.userId);
       queryClient.invalidateQueries({ queryKey: ['game', gameId] });
     };
@@ -79,7 +96,6 @@ export default function GamePage() {
     socket.on('game:player_joined', handlePlayerJoined);
     socket.on('game:player_left', handlePlayerLeft);
 
-    // Cleanup
     return () => {
       socket.off('game:player_joined', handlePlayerJoined);
       socket.off('game:player_left', handlePlayerLeft);
@@ -87,290 +103,237 @@ export default function GamePage() {
     };
   }, [game, accessToken, gameId, enterGame, leaveGame, addParticipant, removeParticipant, queryClient]);
 
-
-  // Handlers
-  const handleLeaveGame = async () => {
-    if (!confirm('Are you sure you want to leave the game?')) return;
+  const handleLeaveGame = useCallback(async () => {
     try {
       await gameService.leave(gameId);
       const socket = getSocket(accessToken);
       socket.emit('game:leave', gameId);
       leaveGame();
+      leaveModal.close();
       router.push('/games/online');
-    } catch (error: any) {
-      console.error('Failed to leave game:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to leave game';
-      alert(errorMessage);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to leave game');
     }
-  };
+  }, [gameId, accessToken, leaveGame, leaveModal, router]);
 
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    sendMessage(input);
-  };
+  /* ── Participants data ── */
+  const participantsData = useMemo(() => {
+    if (!game?.participants) return [];
+    const creatorIdArr = typeof game.creatorId === 'object' ? (game.creatorId as any)._id : game.creatorId;
+    return game.participants.map((p) => {
+      const pUser = p.userId as any;
+      const pId = pUser?._id || pUser?.id || p.userId;
+      return {
+        id: pId.toString(),
+        name: pUser?.fullName || 'Anonymous Player',
+        isOnline: p.status === 'ACTIVE',
+        isHost: creatorIdArr?.toString() === pId.toString(),
+        avatar: pUser?.profilePicture,
+      };
+    });
+  }, [game]);
 
+  const currentUser = useMemo(() => ({
+    id: user?.id || (user as any)?._id,
+    name: user?.fullName || 'Me',
+  }), [user]);
 
+  /* ── Loading ── */
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex flex-col items-center justify-center h-full gap-5 bg-[#F7F8FA]">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-green-700 animate-pulse flex items-center justify-center shadow-lg shadow-green-100">
+          <Zap className="text-white" size={28} />
+        </div>
+        <div className="text-center">
+          <p className="text-sm font-semibold text-gray-500">Connecting to game...</p>
+          <p className="text-xs text-gray-400 mt-1">Please wait a moment</p>
+        </div>
       </div>
     );
   }
 
+  /* ── Error ── */
   if (error || !game) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-gray-500">
-        <h2 className="text-xl font-bold mb-2">Game Not Found</h2>
-        <button
-          onClick={() => router.push('/games/online')}
-          className="text-primary hover:underline"
-        >
-          Return to Lobby
-        </button>
+      <div className="flex flex-col items-center justify-center h-full p-10 bg-[#F7F8FA]">
+        <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-5">
+          <ShieldAlert size={32} className="text-red-400" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Game Not Found</h2>
+        <p className="text-gray-400 text-sm font-medium mb-8 text-center max-w-xs">
+          This game session doesn&apos;t exist or has ended.
+        </p>
+        <Button onClick={() => router.push('/games/online')} variant="primary" className="px-8 h-11 rounded-lg">
+          Back to Games
+        </Button>
       </div>
     );
   }
 
+  const isCreator =
+    currentUser.id &&
+    (typeof game.creatorId === 'object' ? (game.creatorId as any)._id : game.creatorId)
+      ?.toString() === currentUser.id.toString();
+
   return (
-    <div className="flex flex-col h-full bg-[#f8fafc] overflow-hidden">
-      {/* Top Bar: Game Info & Actions */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm z-10">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-indigo-600 rounded-lg shadow-sm">
-            <Gamepad2 size={24} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 leading-tight">{game.title}</h1>
-            <div className="flex items-center gap-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${game.status === 'OPEN' ? 'bg-green-500' : 'bg-yellow-500'}`} />
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{game.status}</span>
-              <span className="text-gray-300">|</span>
-              <span className="text-xs text-gray-500">{activeGame?.currentPlayers || game.currentPlayers} / {game.maxPlayers} Players</span>
+    <ChatLayout
+      sidebar={
+        <ParticipantsSidebar
+          participants={participantsData}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      }
+    >
+      {/* Header */}
+      <ChatHeader
+        title={game.title}
+        participantCount={game.currentPlayers}
+        onMenuClick={() => setIsSidebarOpen((v) => !v)}
+        action={
+          isCreator ? (
+            <Button
+              onClick={leaveModal.open}
+              variant="danger"
+              size="sm"
+              leftIcon={Trash2}
+              className="rounded-lg h-9 px-4 font-bold text-xs"
+            >
+              End Session
+            </Button>
+          ) : (
+            <Button
+              onClick={leaveModal.open}
+              variant="ghost"
+              size="sm"
+              leftIcon={LogOut}
+              className="rounded-lg h-9 px-4 text-gray-500 hover:text-red-600 hover:bg-red-50 font-bold text-xs transition-all"
+            >
+              Leave
+            </Button>
+          )
+        }
+      />
+
+      {/* ── Messages scroll area ── */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto chat-scrollbar px-4 md:px-10 py-6 space-y-0"
+      >
+        {/* Empty state */}
+        {messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full gap-5 select-none">
+            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-sm border border-gray-100">
+              <span className="text-4xl">👋</span>
             </div>
-          </div>
-        </div>
-
-        {/* Show Leave or Rejoin button based on participant status */}
-        {(() => {
-          const userId = user?.id;
-
-          // Find user's participation record
-          const userParticipation = game.participants?.find(p => {
-            const pId = typeof p.userId === 'object' ? (p.userId as any)._id || (p.userId as any).id : p.userId;
-            return pId && userId && pId.toString() === userId.toString();
-          });
-
-          // Check if user is creator
-          const creatorId = typeof game.creatorId === 'object' ? (game.creatorId as any)._id : game.creatorId;
-          const isCreator = userId && creatorId && userId.toString() === creatorId.toString();
-
-          if (userParticipation?.status === 'ACTIVE' && !isCreator) {
-            // User is active participant (not creator) - show Leave button
-            return (
-              <button
-                onClick={handleLeaveGame}
-                className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium border border-transparent hover:border-red-100"
-              >
-                <LogOut size={18} />
-                Leave Game
-              </button>
-            );
-          } else if (userParticipation?.status === 'LEFT') {
-            // User has left - show Rejoin button
-            return (
-              <button
-                onClick={async () => {
-                  try {
-                    await gameService.join(gameId);
-                    queryClient.invalidateQueries({ queryKey: ['game', gameId] });
-                  } catch (error) {
-                    console.error('Failed to rejoin game:', error);
-                    alert('Failed to rejoin game');
-                  }
-                }}
-                className="flex items-center gap-2 px-4 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors text-sm font-medium border border-transparent hover:border-green-100"
-              >
-                <Users size={18} />
-                Rejoin Game
-              </button>
-            );
-          }
-
-          return null;
-        })()}
-      </div>
-
-      <div className="flex-1 flex overflow-hidden">
-        {/* Participants Sidebar */}
-        {game && (
-          <ParticipantsSidebar
-            participants={activeGame?.participants || game.participants || []}
-            creatorId={typeof game.creatorId === 'object' ? (game.creatorId as any)._id : game.creatorId}
-          />
-        )}
-
-        {/* Center Panel: Chat (Main Focus) */}
-        <div className="flex-1 flex flex-col bg-[#F3F4F6] relative">
-          {/* Chat Header (Optional for mobile context mainly) */}
-          <div className="md:hidden p-2 bg-white border-b border-gray-200 text-center text-xs font-bold text-gray-500 uppercase tracking-widest">
-            Game Chat
-          </div>
-
-          {/* Messages Area */}
-          <div
-            ref={scrollRef}
-            className="flex-1 overflow-y-auto p-6 space-y-6"
-          >
-            {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-60">
-                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-                  <MessageSquare size={32} className="text-gray-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-600">No messages yet</h3>
-                <p className="text-sm">Be the first to say hello!</p>
-              </div>
-            )}
-
-            {messages.map((msg: any, idx) => {
-              const isSystem = msg.type === 'system';
-
-              // Helper for safe ID extraction
-              const getUserId = (u: any) => {
-                if (!u) return null; // Handle null/undefined
-                return typeof u === 'object' ? (u._id || u.id) : u;
-              };
-
-              const msgUserId = getUserId(msg.user);
-              const isOwn = user?.id && msgUserId === user.id;
-
-              const prevMsgUserId = idx > 0 ? getUserId(messages[idx - 1].user) : null;
-              const showAvatar = !isOwn && !isSystem && (idx === 0 || prevMsgUserId !== msgUserId);
-
-              if (isSystem) {
-                return (
-                  <div key={idx} className="flex justify-center my-6">
-                    <div className="px-4 py-1.5 bg-gray-200/50 backdrop-blur-sm text-gray-500 text-xs font-semibold rounded-full border border-gray-200/50 uppercase tracking-wider shadow-sm">
-                      {msg.content}
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div key={idx} className={`flex w-full ${isOwn ? 'justify-end' : 'justify-start'} group`}>
-                  <div className={`flex max-w-[75%] ${isOwn ? 'flex-row-reverse' : 'flex-row'} items-end gap-3`}>
-
-                    {!isOwn && (
-                      <div className="w-10 h-10 flex-shrink-0 flex items-end">
-                        {showAvatar ? (
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-sm font-bold text-white shadow-md ring-2 ring-white">
-                            {msg.user?.fullName?.charAt(0).toUpperCase()}
-                          </div>
-                        ) : <div className="w-10" />}
-                      </div>
-                    )}
-
-                    <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
-                      {/* Always show name for other users' messages */}
-                      {!isOwn && msg.user && (
-                        <span className="text-xs font-semibold text-gray-600 mb-1 ml-1">
-                          {msg.user?.fullName || msg.user?.username || 'Unknown User'}
-                        </span>
-                      )}
-
-                      <div className={`relative px-5 py-3 text-[15px] shadow-sm transition-all hover:shadow-md ${isOwn
-                        ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm'
-                        : 'bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-tl-sm'
-                        }`}>
-                        {msg.content}
-                        <div className={`absolute bottom-full mb-2 ${isOwn ? 'right-0' : 'left-0'} px-2.5 py-1.5 bg-slate-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-xl font-medium tracking-wide`}>
-                          {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Chat Output */}
-          <div className="p-4 bg-white border-t border-gray-200">
-            {(() => {
-              const userId = user?.id || (user as any)?._id;
-
-              // Check if user is ACTIVE participant
-              const isActiveParticipant = game?.participants?.some((p: any) => {
-                const pId = typeof p.userId === 'object' ? (p.userId as any)._id : p.userId;
-                return pId?.toString() === userId?.toString() && p.status === 'ACTIVE';
-              });
-
-              // Creator is always a participant owner
-              const creatorId = typeof game?.creatorId === 'object' ? (game.creatorId as any)._id : game?.creatorId;
-              const isCreator = userId && creatorId && userId.toString() === creatorId.toString();
-
-              // Can chat if: ACTIVE participant OR creator
-              const canChat = isActiveParticipant || isCreator;
-
-              return (
-                <form onSubmit={handleSend} className="max-w-4xl mx-auto relative flex items-center gap-3">
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder={canChat ? "Type a message to everyone..." : "Join the game to chat"}
-                      disabled={!canChat}
-                      className="w-full pl-5 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400 shadow-inner disabled:opacity-60 disabled:cursor-not-allowed"
-                    />
-                    <button
-                      type="submit"
-                      disabled={!input.trim() || !canChat}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-all shadow-md hover:shadow-lg hover:-translate-y-[calc(50%+1px)] active:translate-y-1/2"
-                    >
-                      <Send size={18} />
-                    </button>
-                  </div>
-
-                  {/* Leave Game Button for Active Participants */}
-                  {(() => {
-                    // Recalculate userId and isCreator in this scope
-                    const currentUserId = user?.id || (user as any)?._id;
-                    const gameCreatorId = game?.creatorId && (typeof game.creatorId === 'object' ? (game.creatorId as any)._id || (game.creatorId as any).id : game.creatorId);
-                    const userIsCreator = currentUserId && gameCreatorId && currentUserId.toString() === gameCreatorId.toString();
-
-                    const userParticipation = game?.participants?.find((p: any) => {
-                      const pId = typeof p.userId === 'object' ? (p.userId as any)._id || (p.userId as any).id : p.userId;
-                      return pId?.toString() === currentUserId?.toString();
-                    });
-
-                    // Show Leave button if: user is ACTIVE participant AND not the creator
-                    if (userParticipation?.status === 'ACTIVE' && !userIsCreator) {
-                      return (
-                        <button
-                          type="button"
-                          onClick={handleLeaveGame}
-                          className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all shadow-sm border border-red-200 hover:border-red-300 font-medium text-sm shrink-0"
-                        >
-                          <LogOut size={18} />
-                          <span className="hidden sm:inline">Leave</span>
-                        </button>
-                      );
-                    }
-                    return null;
-                  })()}
-                </form>
-              );
-            })()}
-            <div className="text-center mt-2">
-              <p className="text-[10px] text-gray-400">
-                Press <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded text-gray-500 font-sans">Enter</kbd> to send
+            <div className="text-center">
+              <p className="text-base font-bold text-gray-800">No messages yet</p>
+              <p className="text-sm text-gray-400 mt-1.5">
+                Say hi to your teammates! Use {' '}
+                <span className="inline-flex items-center gap-1 text-green-600 font-semibold">
+                  <Smile size={13} /> emoji
+                </span>{' '}
+                to react
               </p>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Message list with date separators */}
+        {messages.map((msg: any, idx: number) => {
+          const msgDate = msg.createdAt ? new Date(msg.createdAt) : new Date();
+          const prevMsg = idx > 0 ? messages[idx - 1] : null;
+          const prevDate = prevMsg?.createdAt ? new Date(prevMsg.createdAt) : null;
+
+          /* show date label when date changes */
+          const showDateSep =
+            !prevDate || new Date(msgDate).toDateString() !== new Date(prevDate).toDateString();
+
+          /* system events */
+          if (msg.type === 'system') {
+            return (
+              <div key={idx}>
+                {showDateSep && <DateSeparator date={msgDate} />}
+                <div className="flex justify-center my-4">
+                  <div className="px-4 py-1.5 bg-white border border-gray-100 rounded-full shadow-sm">
+                    <span className="text-[11px] font-semibold text-gray-400">{msg.content}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          const msgUserId = msg.user?._id || msg.user?.id || msg.user;
+          const isOwn = !!(currentUser.id && msgUserId?.toString() === currentUser.id.toString());
+
+          const prevMsgUserId = prevMsg?.user?._id || prevMsg?.user?.id || prevMsg?.user;
+          const isGrouped = !!(
+            prevMsg &&
+            prevMsg.type !== 'system' &&
+            prevMsgUserId?.toString() === msgUserId?.toString() &&
+            new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() < 5 * 60 * 1000
+          );
+
+          const creatorId =
+            typeof game.creatorId === 'object' ? (game.creatorId as any)._id : game.creatorId;
+
+          return (
+            <div key={idx}>
+              {showDateSep && <DateSeparator date={msgDate} />}
+              <MessageBubble
+                isOwn={isOwn}
+                isGrouped={isGrouped}
+                isHost={creatorId?.toString() === msgUserId?.toString()}
+                message={{
+                  id: msg.id || msg._id || String(idx),
+                  senderId: msgUserId?.toString(),
+                  senderName: msg.user?.fullName || 'Anonymous',
+                  senderAvatar: msg.user?.profilePicture,
+                  text: msg.content,
+                  timestamp: msgDate,
+                }}
+              />
+            </div>
+          );
+        })}
       </div>
+
+      {/* Input */}
+      <MessageInput
+        onSendMessage={sendMessage}
+        disabled={!accessToken}
+        placeholder="Message the team... (Enter to send)"
+      />
+
+      {/* Confirm modal */}
+      <ConfirmModal
+        isOpen={leaveModal.isOpen}
+        onClose={leaveModal.close}
+        onConfirm={handleLeaveGame}
+        title={isCreator ? 'End Game Session?' : 'Leave Game?'}
+        message={
+          isCreator
+            ? 'Are you sure you want to end this session? All players will be removed.'
+            : 'Are you sure you want to leave this game?'
+        }
+        confirmText={isCreator ? 'End Session' : 'Leave Game'}
+        cancelText="Cancel"
+        variant="danger"
+      />
+    </ChatLayout>
+  );
+}
+
+/* ── Date separator ── */
+function DateSeparator({ date }: { date: Date }) {
+  return (
+    <div className="flex items-center gap-3 my-5">
+      <div className="flex-1 h-px bg-gray-100" />
+      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap px-1">
+        {getDateLabel(date)}
+      </span>
+      <div className="flex-1 h-px bg-gray-100" />
     </div>
   );
 }

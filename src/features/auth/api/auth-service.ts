@@ -39,5 +39,13 @@ export const authService = {
     getAllUsers: async (): Promise<User[]> => {
         const response = await apiClient.get<ApiResponse<User[]>>(ENDPOINTS.AUTH.USERS);
         return response.data.data;
+    },
+
+    forgotPassword: async (data: { email: string }): Promise<void> => {
+        await apiClient.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, data);
+    },
+
+    resetPassword: async (data: { email: string; otp: string; newPassword: string; confirmPassword: string }): Promise<void> => {
+        await apiClient.post(ENDPOINTS.AUTH.RESET_PASSWORD, data);
     }
 };
