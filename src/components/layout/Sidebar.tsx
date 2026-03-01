@@ -1,118 +1,135 @@
-"use client";
-import React, { useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useAuthStore } from "@/features/auth/store/auth-store";
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
-    Gamepad2,
-    LayoutDashboard,
-    Users,
+    BarChart2,
+    Wifi,
+    WifiOff,
+    Settings,
     Trophy,
     MessageSquare,
-    Settings,
+    LayoutDashboard,
     LogOut,
     ChevronLeft,
     ChevronRight,
+    Menu,
+    X,
     Zap,
-} from "lucide-react";
+    Shield,
+    Users,
+    Gamepad2,
+    Activity,
+} from 'lucide-react';
+import { useAuthStore } from '@/features/auth/store/auth-store';
+import { useQuery } from '@tanstack/react-query';
+import { adminService } from '@/features/admin/api/admin-service';
+import { Avatar } from '@/components/ui';
 
-import { useQuery } from "@tanstack/react-query";
-import { gameService } from "@/features/games/api/game-service";
+const NAV_ITEMS = [
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+    { icon: BarChart2, label: 'Analytics', href: '/analytics' },
+    { icon: Wifi, label: 'Online Games', href: '/games/online' },
+    { icon: WifiOff, label: 'Offline Games', href: '/games/offline' },
+    { icon: Trophy, label: 'Rankings', href: '/rankings' },
+    { icon: MessageSquare, label: 'Messages', href: '/messages' },
+    { icon: Settings, label: 'Settings', href: '/settings' },
+];
 
 export default function Sidebar() {
-    const [isCollapsed, setIsCollapsed] = useState(false);
     const pathname = usePathname();
-    const router = useRouter();
-    const logout = useAuthStore((state) => state.logout);
-    const user = useAuthStore((state) => state.user);
-    const profile = useAuthStore((state) => state.profile);
+    const { user, logout } = useAuthStore();
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [mounted, setMounted] = React.useState(false);
 
-    const { data: joinedGamesData } = useQuery({
-        queryKey: ['myJoinedGames'],
-        queryFn: () => gameService.getMyJoined(),
-        enabled: !!user
+    const isAdmin = mounted && (user as any)?.role === 'admin';
+
+    React.useEffect(() => { setMounted(true); }, []);
+
+    // Fetch admin stats only for admin users
+    const { data: stats } = useQuery({
+        queryKey: ['admin-stats'],
+        queryFn: adminService.getStats,
+        enabled: isAdmin,
+        staleTime: 30_000,
+        refetchInterval: 60_000,
     });
 
-    const joinedGames = joinedGamesData?.games || [];
+    const isActive = (href: string) => pathname === href || pathname?.startsWith(href + '/');
 
-    const handleLogout = async () => {
-        await logout();
-        router.push('/auth/login');
-    };
+    // Admin quick-stat rows shown below nav
+    const adminStatItems = stats ? [
+        { icon: Users, label: 'Users', value: stats.totalUsers, color: 'text-green-600 bg-green-50' },
+        { icon: Gamepad2, label: 'Games', value: stats.totalGames, color: 'text-blue-600 bg-blue-50' },
+        { icon: Wifi, label: 'Online', value: stats.totalOnlineGames, color: 'text-cyan-600 bg-cyan-50' },
+        { icon: WifiOff, label: 'Offline', value: stats.totalOfflineGames, color: 'text-purple-600 bg-purple-50' },
+        { icon: Activity, label: 'Active', value: stats.activeGames, color: 'text-amber-600 bg-amber-50' },
+        { icon: Users, label: 'Players', value: stats.totalParticipantsAcrossAllGames, color: 'text-rose-600 bg-rose-50' },
+    ] : [];
 
-    const menuItems = [
-        { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-        { icon: Users, label: "Online Games", href: "/games/online" },
-        { icon: Trophy, label: "Offline Games", href: "/games/offline" },
-        { icon: MessageSquare, label: "Rankings", href: "/rankings" },
-        { icon: Settings, label: "Settings", href: "/settings" },
-    ];
-
-    return (
-        <aside
-            className={`bg-white border-r border-slate-100 transition-all duration-300 ease-in-out z-[100] flex flex-col h-screen sticky top-0 ${isCollapsed ? "w-20" : "w-64"
-                }`}
-        >
-            {/* --- Header / Logo --- */}
-            <div className="h-20 flex items-center px-6 mb-4">
-                <Link href="/" className="flex items-center gap-3 group w-full">
-                    {!isCollapsed ? (
-                        <img
-                            src="/playsync-logo.svg"
-                            alt="PlaySync"
-                            className="h-8 w-auto transition-transform group-hover:scale-105"
-                        />
-                    ) : (
-                        <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100 shrink-0 group-hover:rotate-12 transition-transform">
-                            <Gamepad2 size={20} />
-                        </div>
-                    )}
-                </Link>
+    const SidebarContent = () => (
+        <div className="flex flex-col h-full bg-white border-r border-gray-100">
+            {/* Brand */}
+            <div className={`flex items-center gap-3 px-4 py-4 shrink-0 border-b border-gray-50 ${isCollapsed ? 'justify-center h-[72px]' : 'justify-center'}`}>
+                {isCollapsed ? (
+                    /* Collapsed: just the Zap icon */
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-green-600 shadow-sm flex-shrink-0">
+                        <Zap size={18} className="text-white" strokeWidth={2.5} />
+                    </div>
+                ) : (
+                    /* Expanded: the real /p.svg logo from footer */
+                    <img
+                        src="/p.svg"
+                        alt="PlaySync"
+                        className="h-40 w-auto object-contain"
+                    />
+                )}
             </div>
 
-            {/* --- Collapse Toggle --- */}
-            <button
-                onClick={() => setIsCollapsed(!isCollapsed)}
-                className="absolute -right-3 top-24 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-emerald-600 shadow-sm z-50"
-            >
-                {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-            </button>
+            {/* Profile Card Summary */}
+            {!isCollapsed && mounted && (
+                <div className="px-5 transition-all animate-fade-in py-2">
+                    <div className="bg-gray-50/80 border border-gray-100 rounded-xl p-4 flex items-center gap-3 shadow-sm group/profile hover:bg-white hover:border-green-100 transition-all cursor-pointer">
+                        <Avatar
+                            src={(user as any)?.profilePicture || (user as any)?.avatar}
+                            fallback={user?.fullName || 'U'}
+                            size="sm"
+                            className="ring-2 ring-white shadow-sm group-hover/profile:scale-105 transition-transform"
+                        />
+                        <div className="min-w-0 flex-1">
+                            <p className="text-[11px] font-black text-gray-900 uppercase tracking-tight truncate">
+                                {user?.fullName || 'Player'}
+                            </p>
+                            <p className="text-[8px] font-bold text-green-600 uppercase tracking-widest mt-0.5">
+                                • Online
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-            {/* --- Navigation Items --- */}
-            <nav className="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar">
-                {menuItems.map((item) => {
-                    const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-
+            {/* Navigation */}
+            <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto py-4">
+                {NAV_ITEMS.map((item) => {
+                    const active = isActive(item.href);
                     return (
                         <Link
-                            key={item.label}
+                            key={item.href}
                             href={item.href}
-                            className={`flex items-center gap-4 px-3 py-3.5 rounded-2xl transition-all relative group ${isActive
-                                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-100"
-                                : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"
+                            onClick={() => setMobileOpen(false)}
+                            className={`flex items-center gap-3 px-3.5 py-3 rounded-lg transition-all group relative ${isCollapsed ? 'justify-center' : ''} ${active
+                                ? 'bg-green-600 text-white shadow-lg shadow-green-100'
+                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                                 }`}
                         >
-                            <item.icon
-                                size={22}
-                                className={`${isActive ? "text-white" : "group-hover:scale-110 transition-transform"}`}
-                            />
-
-                            {!isCollapsed && (
-                                <span className="text-sm font-bold tracking-tight flex-1 whitespace-nowrap">
-                                    {item.label}
-                                </span>
-                            )}
-
-                            {/* Notification Badge */}
-                            {item.badge && !isCollapsed && (
-                                <span className="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
-                                    {item.badge}
-                                </span>
-                            )}
-
-                            {/* Tooltip for Collapsed State */}
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${active ? 'bg-white/20' : 'bg-transparent group-hover:bg-gray-100'}`}>
+                                <item.icon size={18} strokeWidth={active ? 2.5 : 2} />
+                            </div>
+                            {!isCollapsed && <span className="text-[11px] font-black uppercase tracking-widest">{item.label}</span>}
                             {isCollapsed && (
-                                <div className="absolute left-16 bg-slate-900 text-white text-[10px] font-black px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity uppercase tracking-widest whitespace-nowrap z-50">
+                                <div className="absolute left-full ml-4 px-3 py-1.5 bg-gray-800 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
                                     {item.label}
                                 </div>
                             )}
@@ -120,113 +137,151 @@ export default function Sidebar() {
                     );
                 })}
 
-                {/* --- Joined Games Section --- */}
-                {!isCollapsed && joinedGames.length > 0 && (
-                    <div className="pt-6 pb-2">
-                        <h3 className="px-4 text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
-                            Joined Games
-                        </h3>
-                        <div className="space-y-1">
-                            {joinedGames.map((game) => {
-                                const gameHref = `/games/${game.category.toLowerCase()}/${game._id}`;
-                                const isActive = pathname === gameHref;
-                                return (
-                                    <Link
-                                        key={game._id}
-                                        href={gameHref}
-                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${isActive
-                                            ? "bg-emerald-50 text-emerald-600"
-                                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
-                                            }`}
+                {/* Admin link — only for admin role */}
+                {isAdmin && (() => {
+                    const active = isActive('/admin');
+                    return (
+                        <Link
+                            href="/admin"
+                            onClick={() => setMobileOpen(false)}
+                            className={`flex items-center gap-3 px-3.5 py-3 rounded-lg transition-all group relative mt-2 ${isCollapsed ? 'justify-center' : ''} ${active
+                                ? 'bg-purple-600 text-white shadow-lg shadow-purple-100'
+                                : 'text-purple-500 hover:bg-purple-50 hover:text-purple-700'
+                                }`}
+                        >
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${active ? 'bg-white/20' : 'bg-transparent group-hover:bg-purple-100'}`}>
+                                <Shield size={18} strokeWidth={active ? 2.5 : 2} />
+                            </div>
+                            {!isCollapsed && <span className="text-[11px] font-black uppercase tracking-widest">Admin</span>}
+                            {isCollapsed && (
+                                <div className="absolute left-full ml-4 px-3 py-1.5 bg-gray-800 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                                    Admin Panel
+                                </div>
+                            )}
+                        </Link>
+                    );
+                })()}
+
+                {/* ── Admin Live Stats Block (shown in sidebar below nav) ── */}
+                {isAdmin && !isCollapsed && (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-1 mb-3 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block" />
+                            Platform Stats
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                            {adminStatItems.length === 0
+                                ? Array.from({ length: 6 }).map((_, i) => (
+                                    <div key={i} className="h-[60px] bg-gray-50 rounded-xl animate-pulse" />
+                                ))
+                                : adminStatItems.map((item) => (
+                                    <div
+                                        key={item.label}
+                                        className="flex flex-col gap-1.5 bg-gray-50 hover:bg-white border border-gray-100 hover:border-gray-200 rounded-xl px-3 py-2.5 transition-all group/stat"
                                     >
-                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? "bg-emerald-200 text-emerald-700" : "bg-slate-100 text-slate-400"}`}>
-                                            {game.imageUrl ? (
-                                                <img src={game.imageUrl} alt={game.title} className="w-full h-full object-cover rounded-lg" />
-                                            ) : (
-                                                <span className="text-xs font-bold">{game.title.substring(0, 1)}</span>
-                                            )}
+                                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${item.color}`}>
+                                            <item.icon size={12} />
                                         </div>
-                                        <span className="text-sm font-semibold truncate">
-                                            {game.title}
-                                        </span>
-                                        {isActive && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 ml-auto" />}
-                                    </Link>
-                                );
-                            })}
+                                        <p className="text-base font-extrabold text-gray-900 leading-none">
+                                            {item.value.toLocaleString()}
+                                        </p>
+                                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider leading-none">
+                                            {item.label}
+                                        </p>
+                                    </div>
+                                ))
+                            }
                         </div>
+                        <Link
+                            href="/admin"
+                            className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 text-[10px] font-bold text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-all uppercase tracking-widest"
+                        >
+                            <Shield size={10} />
+                            Open Admin Panel
+                        </Link>
+                    </div>
+                )}
+
+                {/* Collapsed state: show admin stat icons only */}
+                {isAdmin && isCollapsed && adminStatItems.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
+                        {adminStatItems.map((item) => (
+                            <div
+                                key={item.label}
+                                className="relative flex items-center justify-center group/cstat"
+                            >
+                                <div className={`w-9 h-9 rounded-lg flex flex-col items-center justify-center ${item.color} cursor-default`}>
+                                    <item.icon size={12} />
+                                    <span className="text-[8px] font-black mt-0.5 leading-none">
+                                        {item.value > 999 ? `${(item.value / 1000).toFixed(1)}k` : item.value}
+                                    </span>
+                                </div>
+                                <div className="absolute left-full ml-4 px-3 py-1.5 bg-gray-800 text-white text-[10px] font-bold rounded-lg opacity-0 group-hover/cstat:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                                    {item.label}: {item.value.toLocaleString()}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </nav>
 
-            {/* --- Bottom Section: Player Card --- */}
-            <div className="p-4 border-t border-slate-50 mt-auto">
-                {!isCollapsed ? (
-                    <div
-                        onClick={() => router.push('/settings')}
-                        className="bg-slate-900 rounded-[1.5rem] p-4 text-white relative overflow-hidden group cursor-pointer"
-                    >
-                        <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/20 rounded-full blur-2xl group-hover:bg-emerald-500/40 transition-all" />
-                        <div className="relative z-10">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-slate-950 overflow-hidden">
-                                    {profile?.profilePicture ? (
-                                        <img
-                                            src={profile.profilePicture.startsWith('http')
-                                                ? profile.profilePicture
-                                                : `http://localhost:5000${profile.profilePicture}`}
-                                            alt="Profile"
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <Zap size={16} fill="currentColor" />
-                                    )}
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
-                                        Pro Active
-                                    </p>
-                                    <p className="text-xs font-bold truncate max-w-[120px]">
-                                        {(profile?.fullName || user?.fullName || "Ghost_Main").split(' ')[0]}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                                <div className="bg-emerald-500 h-full w-[70%]" />
-                            </div>
-                            <p className="text-[9px] font-bold text-slate-400 mt-2 uppercase tracking-widest">
-                                70% to Elite Rank
-                            </p>
+            {/* Footer */}
+            <div className="p-5 border-t border-gray-50 space-y-2">
+                <button
+                    onClick={() => logout()}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all ${isCollapsed ? 'justify-center' : 'justify-between'} group/logout`}
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-50 group-hover/logout:bg-red-100 group-hover/logout:text-red-600 transition-colors">
+                            <LogOut size={16} />
                         </div>
+                        {!isCollapsed && <span className="text-[11px] font-black uppercase tracking-widest">Sign Out</span>}
                     </div>
-                ) : (
-                    <div className="flex flex-col items-center gap-4">
-                        <div
-                            onClick={() => router.push('/settings')}
-                            className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-emerald-500 cursor-pointer hover:bg-emerald-600 hover:text-white transition-all overflow-hidden"
-                        >
-                            {profile?.profilePicture ? (
-                                <img
-                                    src={profile.profilePicture.startsWith('http')
-                                        ? profile.profilePicture
-                                        : `http://localhost:5000${profile.profilePicture}`}
-                                    alt="Profile"
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <Zap size={20} />
-                            )}
-                        </div>
-                    </div>
-                )}
+                </button>
 
                 <button
-                    onClick={handleLogout}
-                    className={`w-full flex items-center gap-4 px-3 py-4 mt-4 text-slate-400 hover:text-red-500 transition-colors ${isCollapsed ? "justify-center" : ""}`}
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className="hidden lg:flex w-full items-center justify-center py-2.5 text-gray-300 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
                 >
-                    <LogOut size={22} />
-                    {!isCollapsed && <span className="text-sm font-bold">Logout</span>}
+                    {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
                 </button>
             </div>
-        </aside>
+        </div>
+    );
+
+    return (
+        <>
+            {/* Mobile Header */}
+            <div className="lg:hidden h-16 flex items-center justify-between px-4 sticky top-0 z-40 bg-white border-b border-gray-100">
+                <div className="flex items-center">
+                    <img src="/p.svg" alt="PlaySync" className="h-36 w-auto object-contain" />
+                </div>
+                <button
+                    onClick={() => setMobileOpen(!mobileOpen)}
+                    className="p-2 text-gray-500 bg-gray-50 rounded-lg border border-gray-100"
+                >
+                    {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+            </div>
+
+            {/* Mobile Backdrop */}
+            {mobileOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-sm lg:hidden h-full w-full"
+                    onClick={() => setMobileOpen(false)}
+                />
+            )}
+
+            {/* Sidebar Panel */}
+            <aside
+                className={`
+                    fixed inset-y-0 left-0 z-50 transition-all duration-300 lg:relative lg:translate-x-0
+                    ${isCollapsed ? 'w-[80px]' : 'w-[260px]'}
+                    ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+                `}
+            >
+                <SidebarContent />
+            </aside>
+        </>
     );
 }
