@@ -88,7 +88,7 @@ export default function GamesPage({ category }: GamesPageProps) {
         const socket = getSocket((useAuthStore.getState() as any).accessToken);
 
         const joinedGames = data.games.filter((g: any) => {
-            const creatorId = typeof g.creatorId === 'object' ? (g.creatorId as any)._id : g.creatorId;
+            const creatorId = g.creatorId?._id || g.creatorId?.id || g.creatorId;
             const isParticipant = g.participants?.some((p: any) => (p.userId?._id || p.userId)?.toString() === userId?.toString());
             return (creatorId?.toString() === userId?.toString()) || isParticipant;
         });

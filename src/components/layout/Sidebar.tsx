@@ -83,7 +83,7 @@ export default function Sidebar() {
                     <img
                         src="/p.svg"
                         alt="PlaySync"
-                        className="h-40 w-auto object-contain"
+                        className="h-12 w-auto object-contain"
                     />
                 )}
             </div>
@@ -254,7 +254,7 @@ export default function Sidebar() {
             {/* Mobile Header */}
             <div className="lg:hidden h-16 flex items-center justify-between px-4 sticky top-0 z-40 bg-white border-b border-gray-100">
                 <div className="flex items-center">
-                    <img src="/p.svg" alt="PlaySync" className="h-36 w-auto object-contain" />
+                    <img src="/p.svg" alt="PlaySync" className="h-auto w-auto max-h-12" />
                 </div>
                 <button
                     onClick={() => setMobileOpen(!mobileOpen)}

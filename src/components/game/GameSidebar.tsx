@@ -51,7 +51,7 @@ export default function GameSidebar() {
 
     const participantsData = useMemo(() => {
         if (!activeGame?.participants) return [];
-        const creatorId = typeof activeGame.creatorId === 'object' ? (activeGame.creatorId as any)._id : activeGame.creatorId;
+        const creatorId = (activeGame.creatorId as any)?._id || (activeGame.creatorId as any)?.id || activeGame.creatorId;
 
         return activeGame.participants.map((p: any) => {
             const pUser = p.userId as any;
@@ -165,7 +165,7 @@ export default function GameSidebar() {
                             );
                         }
 
-                        const creatorId = typeof activeGame.creatorId === 'object' ? (activeGame.creatorId as any)._id : activeGame.creatorId;
+                        const creatorId = (activeGame.creatorId as any)?._id || (activeGame.creatorId as any)?.id || activeGame.creatorId;
 
                         return (
                             <MessageBubble

@@ -57,6 +57,9 @@ export default function RankingsPage() {
     const podiumOrder = top3.length >= 3 ? [players[1], players[0], players[2]] : players;
     const podiumRanks = top3.length >= 3 ? [1, 0, 2] : [0, 1, 2];
 
+    const showPodium = !searchQuery && top3.length >= 3;
+    const listPlayers = showPodium ? rest : filteredPlayers;
+
     return (
         <div className="max-w-6xl mx-auto space-y-12 py-8 animate-in">
 
@@ -89,7 +92,7 @@ export default function RankingsPage() {
             </div>
 
             {/* Podium Section */}
-            {!searchQuery && top3.length >= 3 && (
+            {showPodium && (
                 <div className="grid grid-cols-3 gap-4 md:gap-8 items-end max-w-4xl mx-auto pt-8">
                     {podiumOrder.map((player, i) => {
                         const rankIdx = podiumRanks[i];
@@ -150,8 +153,8 @@ export default function RankingsPage() {
                 </div>
 
                 <div className="divide-y divide-slate-50 overflow-x-auto">
-                    {(searchQuery ? filteredPlayers : rest).map((player: any, i: number) => {
-                        const rank = searchQuery ? players.findIndex((p: any) => p.userId === player.userId) + 1 : i + 4;
+                    {listPlayers.map((player: any, i: number) => {
+                        const rank = players.findIndex((p: any) => p.userId === player.userId) + 1;
                         const isMe = (currentUser as any)?._id === player.userId || currentUser?.id === player.userId;
 
                         return (

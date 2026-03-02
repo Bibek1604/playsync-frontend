@@ -94,7 +94,16 @@ export const useAuthStore = create<AuthState>()(
                 set({ isLoading: true });
                 try {
                     const profile = await authService.getProfile();
-                    set({ profile, isLoading: false });
+                    set((state) => ({
+                        profile,
+                        user: state.user ? {
+                            ...state.user,
+                            fullName: profile.fullName,
+                            avatar: profile.profilePicture || state.user.avatar,
+                            profilePicture: profile.profilePicture
+                        } as unknown as typeof state.user : null,
+                        isLoading: false
+                    }));
                 } catch (error) {
                     console.error(error);
                     set({ isLoading: false });
@@ -105,7 +114,17 @@ export const useAuthStore = create<AuthState>()(
                 set({ isLoading: true });
                 try {
                     const profile = await authService.updateProfile(data);
-                    set({ profile, isLoading: false });
+                    set((state) => ({
+                        profile,
+                        // Synchronize important fields to the user state as well so navigation/sidebar updates immediately
+                        user: state.user ? {
+                            ...state.user,
+                            fullName: profile.fullName,
+                            avatar: profile.profilePicture || state.user.avatar,
+                            profilePicture: profile.profilePicture // Inject this because many components read user.profilePicture
+                        } as unknown as typeof state.user : null,
+                        isLoading: false
+                    }));
                     return true;
                 } catch {
                     set({ isLoading: false });
