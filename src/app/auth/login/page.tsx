@@ -31,12 +31,12 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-white font-poppins">
       {/* Background patterns */}
       <div className="absolute inset-0 pointer-events-none opacity-40">
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-green-50/20 rounded-full blur-[120px] -mr-96 -mt-96" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-green-50/10 rounded-full blur-[100px] -ml-64 -mb-64" />
-        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#e5e7eb 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        <div className="absolute top-0 right-0 w-200 h-200 bg-green-50/20 rounded-full blur-[120px] -mr-96 -mt-96" />
+        <div className="absolute bottom-0 left-0 w-150 h-150 bg-green-50/10 rounded-full blur-[100px] -ml-64 -mb-64" />
+        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[40px_40px]" />
       </div>
 
-      <div className="w-full max-w-[440px] relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="w-full max-w-110 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {/* Brand */}
         <div className="text-center mb-10">
           <Link href="/" className="inline-flex items-center gap-3 mb-8 group">
@@ -74,7 +74,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex justify-between items-center pl-1">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Password</label>
-                <Link href="/auth/forgot-password" className="text-xs font-bold text-green-600 hover:underline">Forgot?</Link>
+                <Link href="/auth/forgot-password" className="text-xs font-bold text-green-600 hover:underline">Forgot password?</Link>
               </div>
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-green-600 transition-colors" size={18} />
