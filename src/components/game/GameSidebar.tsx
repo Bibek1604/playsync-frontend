@@ -148,22 +148,22 @@ export default function GameSidebar() {
                     )}
 
                     {messages.map((msg: any, idx) => {
-                        const msgUserId = msg.user?._id || msg.user?.id || msg.user;
-                        const isOwn = currentUser.id && msgUserId?.toString() === currentUser.id.toString();
-
-                        const prevMsg = idx > 0 ? messages[idx - 1] : null;
-                        const prevUserId = prevMsg?.user?._id || prevMsg?.user?.id || prevMsg?.user;
-                        const isGrouped = !msg.type && prevMsg && prevMsg.type !== 'system' && prevUserId?.toString() === msgUserId?.toString() && (new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() < 5 * 60 * 1000);
-
                         if (msg.type === 'system') {
                             return (
                                 <div key={idx} className="flex justify-center my-3">
                                     <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest px-3 py-1 bg-white border border-gray-100 rounded-full shadow-sm">
-                                        {msg.content}
+                                        {msg.text}
                                     </span>
                                 </div>
                             );
                         }
+
+                        const msgUserId = msg.senderId;
+                        const isOwn = !!(currentUser.id && msgUserId?.toString() === currentUser.id.toString());
+
+                        const prevMsg = idx > 0 ? messages[idx - 1] : null;
+                        const prevUserId = prevMsg?.senderId;
+                        const isGrouped = !!(!msg.type && prevMsg && prevMsg.type !== 'system' && prevUserId?.toString() === msgUserId?.toString() && (new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() < 5 * 60 * 1000));
 
                         const creatorId = (activeGame.creatorId as any)?._id || (activeGame.creatorId as any)?.id || activeGame.creatorId;
 
@@ -174,11 +174,11 @@ export default function GameSidebar() {
                                 isGrouped={isGrouped}
                                 isHost={creatorId?.toString() === msgUserId?.toString()}
                                 message={{
-                                    id: msg.id || msg._id || idx.toString(),
+                                    id: msg._id || msg.id || idx.toString(),
                                     senderId: msgUserId?.toString(),
-                                    senderName: msg.user?.fullName || 'Anonymous',
-                                    senderAvatar: msg.user?.profilePicture,
-                                    text: msg.content,
+                                    senderName: msg.senderName || 'Anonymous',
+                                    senderAvatar: msg.senderAvatar,
+                                    text: msg.text,
                                     timestamp: msg.createdAt ? new Date(msg.createdAt) : new Date()
                                 }}
                             />

@@ -211,18 +211,18 @@ export default function OfflineGamePage() {
             return (
               <div key={idx} className="flex justify-center my-5">
                 <div className="px-4 py-1.5 bg-white border border-gray-100 rounded-full shadow-sm">
-                  <span className="text-[11px] font-semibold text-gray-400">{msg.content}</span>
+                  <span className="text-[11px] font-semibold text-gray-400">{msg.text}</span>
                 </div>
               </div>
             );
           }
 
-          const msgUserId = msg.user?._id || msg.user?.id || msg.user;
-          const isOwn = currentUser.id && msgUserId?.toString() === currentUser.id.toString();
+          const msgUserId = msg.senderId;
+          const isOwn = !!(currentUser.id && msgUserId?.toString() === currentUser.id.toString());
 
           const prevMsg = idx > 0 ? messages[idx - 1] : null;
-          const prevUserId = prevMsg?.user?._id || prevMsg?.user?.id || prevMsg?.user;
-          const isGrouped = prevMsg && prevMsg.type !== 'system' && prevUserId?.toString() === msgUserId?.toString() && (new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() < 5 * 60 * 1000);
+          const prevUserId = prevMsg?.senderId;
+          const isGrouped = !!(prevMsg && prevMsg.type !== 'system' && prevUserId?.toString() === msgUserId?.toString() && (new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() < 5 * 60 * 1000));
 
           const creatorId = typeof game.creatorId === 'object' ? (game.creatorId as any)._id : game.creatorId;
 
@@ -233,11 +233,11 @@ export default function OfflineGamePage() {
               isGrouped={isGrouped}
               isHost={creatorId?.toString() === msgUserId?.toString()}
               message={{
-                id: msg.id || msg._id || idx.toString(),
+                id: msg._id || msg.id || idx.toString(),
                 senderId: msgUserId?.toString(),
-                senderName: msg.user?.fullName || 'Anonymous',
-                senderAvatar: msg.user?.profilePicture,
-                text: msg.content,
+                senderName: msg.senderName || 'Anonymous',
+                senderAvatar: msg.senderAvatar,
+                text: msg.text,
                 timestamp: msg.createdAt ? new Date(msg.createdAt) : new Date()
               }}
             />
