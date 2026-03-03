@@ -109,10 +109,10 @@ export default function ForgotPasswordPage() {
                                 </p>
                             </div>
                             <Link
-                                href={`/auth/reset-password?email=${encodeURIComponent(email)}`}
+                                href={`/auth/verify-otp?email=${encodeURIComponent(email)}`}
                                 className="inline-flex items-center justify-center gap-2 w-full h-12 rounded-lg bg-green-600 text-white font-bold text-base tracking-tight hover:bg-green-700 transition-all"
                             >
-                                Continue to Reset Password
+                                Continue to Verify OTP
                                 <ArrowRight size={20} />
                             </Link>
                             <button

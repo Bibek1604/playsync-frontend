@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect, Suspense } from 'react';
-import { ArrowRight, Eye, EyeOff, Lock, Zap, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Lock, Zap, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui';
@@ -13,7 +13,7 @@ function ResetPasswordForm() {
     const otpParam = searchParams?.get('otp') || '';
 
     const [email, setEmail] = useState(emailParam);
-    const [otp, setOtp] = useState(otpParam.replace(/\D/g, '').slice(0, 6));
+    const [otp, setOtp] = useState(otpParam);
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -25,13 +25,13 @@ function ResetPasswordForm() {
 
     const router = useRouter();
 
-    // Keep email and otp synced if params change
+    // Initialize email and OTP from URL params
     useEffect(() => {
         if (emailParam) {
             setEmail(emailParam);
         }
         if (otpParam) {
-            setOtp(otpParam.replace(/\D/g, '').slice(0, 6));
+            setOtp(otpParam);
         }
     }, [emailParam, otpParam]);
 
@@ -42,6 +42,12 @@ function ResetPasswordForm() {
 
         if (newPassword !== confirmPassword) {
             setError("Passwords do not match");
+            setIsLoading(false);
+            return;
+        }
+
+        if (!otp) {
+            setError("Invalid OTP. Please verify OTP first.");
             setIsLoading(false);
             return;
         }
@@ -71,28 +77,13 @@ function ResetPasswordForm() {
             <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 pl-1">Email Address</label>
                 <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
                         type="email"
                         value={email}
                         placeholder="your@email.com"
                         readOnly
-                        className="w-full px-4 py-3.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 cursor-not-allowed"
-                    />
-                </div>
-            </div>
-
-            <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 pl-1">OTP (6-digit code)</label>
-                <div className="relative group">
-                    <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-green-600 transition-colors" size={18} />
-                    <input
-                        type="text"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-transparent focus:bg-white focus:border-green-500 rounded-lg outline-none transition-all font-medium text-gray-900 shadow-sm font-mono tracking-widest"
-                        placeholder="000000"
-                        required
-                        maxLength={6}
+                        className="w-full pl-12 pr-4 py-3.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 cursor-not-allowed"
                     />
                 </div>
             </div>
@@ -145,7 +136,7 @@ function ResetPasswordForm() {
 
             {error && (
                 <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-lg text-red-600 text-sm font-bold animate-in shake">
-                    <ShieldCheck size={18} />
+                    <Lock size={18} />
                     {error}
                 </div>
             )}
@@ -186,7 +177,7 @@ export default function ResetPasswordPage() {
                         </span>
                     </Link>
                     <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">Reset Password</h1>
-                    <p className="text-gray-500 font-medium text-sm">Enter the OTP sent to your email and your new password.</p>
+                    <p className="text-gray-500 font-medium text-sm">Enter your new password to complete the reset process.</p>
                 </div>
 
                 {/* Card */}
