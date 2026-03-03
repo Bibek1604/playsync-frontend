@@ -6,7 +6,7 @@ import { useAuthStore } from "@/features/auth/store/auth-store";
 import {
     Users, Gamepad2, Wifi, WifiOff, Activity, Search,
     ChevronLeft, ChevronRight, Shield, Mail, Calendar, Eye,
-    X, Crown, Clock, TrendingUp, UserCheck, BarChart3, AlertCircle, Lock,
+    X, Crown, Clock, TrendingUp, UserCheck, BarChart3, AlertCircle, Lock, Trophy
 } from "lucide-react";
 import {
     adminService,
@@ -577,15 +577,7 @@ export default function AdminDashboard() {
 
                 {/* Tab switcher */}
                 <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: '#F8F9FA', border: '1px solid #E5E7EB' }}>
-                    {[
-                        { key: "overview", label: "Overview", icon: <BarChart3 size={14} /> },
-                        { key: "users", label: "Users", icon: <Users size={14} /> },
-                        { key: "games", label: "Games", icon: <Gamepad2 size={14} /> },
-                    ].map(t => (
-                        <button key={t.key} {...tabStyle(t.key as any)} onClick={() => setTab(t.key as any)}>
-                            {t.icon}{t.label}
-                        </button>
-                    ))}
+
                 </div>
             </div>
 
@@ -629,9 +621,7 @@ export default function AdminDashboard() {
                     )}
 
                     {/* Tab content */}
-                    {tab === "overview" && <Overview stats={stats} />}
-                    {tab === "users" && <UsersTab isReady={isReady} />}
-                    {tab === "games" && <GamesTab isReady={isReady} />}
+                    <Overview stats={stats} />
                 </>
             )}
         </div>

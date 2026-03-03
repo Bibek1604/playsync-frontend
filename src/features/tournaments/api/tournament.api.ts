@@ -6,7 +6,8 @@ import { ENDPOINTS } from '@/lib/constants';
 
 export interface Tournament {
   _id: string;
-  name: string;
+  name?: string;
+  title?: string;
   description: string;
   type: 'online' | 'offline';
   location?: string;
@@ -89,7 +90,7 @@ export const tournamentApi = {
   // ── Payment ──────────────────────────────────────────────────────
 
   initiatePayment: async (tournamentId: string) => {
-    const res = await apiClient.post(ENDPOINTS.TOURNAMENTS.INITIATE_PAYMENT(tournamentId));
+    const res = await apiClient.post(ENDPOINTS.TOURNAMENTS.INITIATE_PAYMENT(tournamentId), { tournamentId });
     return res.data.data as {
       paymentUrl: string;
       params: Record<string, string>;
@@ -98,8 +99,8 @@ export const tournamentApi = {
   },
 
   verifyPayment: async (transactionUuid: string) => {
-    const res = await apiClient.post(ENDPOINTS.TOURNAMENTS.VERIFY_PAYMENT, { transactionUuid });
-    return res.data.data as { success: boolean; tournamentId: string };
+    const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.VERIFY_PAYMENT, { params: { data: transactionUuid } });
+    return res.data;
   },
 
   getPaymentStatus: async (tournamentId: string) => {

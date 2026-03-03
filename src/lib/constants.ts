@@ -60,6 +60,25 @@ export const ENDPOINTS = {
         READ_ALL: '/api/v1/notifications/read-all',
         MARK_READ: (id: string) => `/api/v1/notifications/${id}/read`,
     },
+    TOURNAMENTS: {
+        LIST: '/api/v1/tournaments',
+        CREATE: '/api/v1/tournaments',
+        MINE: '/api/v1/tournaments/my/created',
+        BY_ID: (id: string) => `/api/v1/tournaments/${id}`,
+        UPDATE: (id: string) => `/api/v1/tournaments/${id}`,
+        DELETE: (id: string) => `/api/v1/tournaments/${id}`,
+        INITIATE_PAYMENT: (id: string) => `/api/v1/payments/initiate`,
+        VERIFY_PAYMENT: '/api/v1/payments/verify',
+        PAYMENT_STATUS: (id: string) => `/api/v1/tournaments/${id}/payment/status`,
+        CHAT_ACCESS: (id: string) => `/api/v1/tournaments/${id}/chat/access`,
+        DASHBOARD_TRANSACTIONS: '/api/v1/payments/admin/transactions',
+        TOURNAMENT_PAYMENTS: (id: string) => `/api/v1/tournaments/${id}/payments`,
+    },
+    PAYMENTS: {
+        INITIATE: '/api/v1/payments/initiate',
+        VERIFY: '/api/v1/payments/verify',
+        ADMIN_TRANSACTIONS: '/api/v1/payments/admin/transactions',
+    },
 };
 
 export const getImageUrl = (url?: string): string | undefined => {

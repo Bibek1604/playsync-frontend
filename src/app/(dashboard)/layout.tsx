@@ -10,16 +10,20 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { isAuthenticated, isLoading, isHydrated } = useAuthStore();
+    const { isAuthenticated, isLoading, isHydrated, user } = useAuthStore();
     const router = useRouter();
 
     useEffect(() => {
-        if (isHydrated && !isLoading && !isAuthenticated) {
-            router.push("/auth/login");
+        if (isHydrated && !isLoading) {
+            if (!isAuthenticated) {
+                router.push("/auth/login");
+            } else if ((user as any)?.role === 'admin') {
+                router.push("/admin");
+            }
         }
-    }, [isAuthenticated, isLoading, isHydrated, router]);
+    }, [isAuthenticated, isLoading, isHydrated, user, router]);
 
-    if (!isHydrated || !isAuthenticated) {
+    if (!isHydrated || !isAuthenticated || (user as any)?.role === 'admin') {
         return (
             <div className="h-screen w-full flex items-center justify-center bg-white">
                 <div className="flex flex-col items-center gap-6">

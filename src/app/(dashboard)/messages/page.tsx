@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { gameService } from '@/features/games/api/game-service';
+import { tournamentService } from '@/features/tournaments/api/tournament-service';
 import { useAuthStore } from '@/features/auth/store/auth-store';
 import { getImageUrl } from '@/lib/constants';
 import Link from 'next/link';
@@ -40,13 +41,40 @@ export default function MessagesPage() {
         enabled: !!user
     });
 
-    const games = data?.games || [];
+    const { data: tournamentsData, isLoading: tournamentsLoading } = useQuery({
+        queryKey: ['tournaments'],
+        queryFn: tournamentService.getAll,
+        enabled: !!user,
+    });
 
-    const filteredGames = games.filter(game => {
-        const matchesSearch = game.title.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = filterCategory === 'ALL' || game.category === filterCategory;
+    const games = data?.games || [];
+    const joinedTournaments = (tournamentsData || []).filter(t => t.isParticipant && t.isPaid && t.status !== 'CLOSED');
+
+    const allLobbies = [
+        ...games.map(g => ({
+            ...g,
+            isTournament: false,
+            link: `/games/${g.category.toLowerCase()}/${g._id}`
+        })),
+        ...joinedTournaments.map(t => ({
+            _id: t._id,
+            title: t.title,
+            category: t.type?.toUpperCase() || 'ONLINE',
+            currentPlayers: t.currentPlayers,
+            maxPlayers: t.maxPlayers,
+            participants: t.participants || [],
+            isTournament: true,
+            link: `/tournaments/${t._id}/chat`
+        }))
+    ];
+
+    const filteredGames = allLobbies.filter(lobby => {
+        const matchesSearch = lobby.title.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = filterCategory === 'ALL' || lobby.category === filterCategory;
         return matchesSearch && matchesCategory;
     });
+
+    const isAnyLoading = isLoading || tournamentsLoading;
 
     return (
         <div className="max-w-7xl mx-auto py-10 px-6 space-y-10 animate-in fade-in duration-700">
@@ -102,7 +130,7 @@ export default function MessagesPage() {
             </div>
 
             {/* Results */}
-            {isLoading ? (
+            {isAnyLoading ? (
                 <div className="flex flex-col items-center justify-center py-32 gap-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
                     <div className="relative">
                         <Loader2 className="w-12 h-12 text-green-600 animate-spin" />
@@ -137,15 +165,15 @@ export default function MessagesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredGames.map((game) => (
                         <Link
-                            key={game._id}
-                            href={`/games/${game.category.toLowerCase()}/${game._id}`}
+                            key={`${game.isTournament ? 't' : 'g'}-${game._id}`}
+                            href={game.link}
                             className="block group"
                         >
                             <Card className="p-0 overflow-hidden border-gray-100 bg-white hover:border-green-200 hover:shadow-lg transition-all duration-200">
                                 <div className="p-6 flex items-center gap-5">
-                                    <div className="w-16 h-16 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center text-3xl shadow-sm relative">
-                                        {game.imageUrl ? (
-                                            <img src={getImageUrl(game.imageUrl)} alt="" className="w-full h-full object-cover" />
+                                    <div className={`w-16 h-16 rounded-xl border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center text-3xl shadow-sm relative ${game.isTournament ? 'bg-amber-50 text-amber-500' : 'bg-gray-50'}`}>
+                                        {game.isTournament ? "🏆" : (game as any).imageUrl ? (
+                                            <img src={getImageUrl((game as any).imageUrl)} alt="" className="w-full h-full object-cover" />
                                         ) : (
                                             "🎮"
                                         )}
@@ -155,10 +183,13 @@ export default function MessagesPage() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <h4 className="font-black text-lg text-gray-900 truncate group-hover:text-green-600 transition-colors mb-1">{game.title}</h4>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                             <Badge variant={game.category === 'ONLINE' ? 'success' : 'neutral'} size="sm">
                                                 {game.category}
                                             </Badge>
+                                            {game.isTournament && (
+                                                <Badge variant="warning" size="sm">TOURNAMENT</Badge>
+                                            )}
                                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
                                                 <Users size={11} className="text-green-500" />
                                                 {game.currentPlayers}/{game.maxPlayers}

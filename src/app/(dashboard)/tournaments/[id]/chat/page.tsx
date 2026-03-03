@@ -204,92 +204,92 @@ export default function TournamentChatPage() {
     <div className="flex gap-3 h-[calc(100vh-8rem)] max-w-5xl mx-auto">
       {/* ─── Chat Column ─────────────────────────────── */}
       <div className="flex flex-col flex-1 min-w-0">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-        <Link href={`/tournaments/${id}`} className="text-slate-400 hover:text-slate-700 transition">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-          <Trophy className="w-4 h-4 text-emerald-600" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="font-bold text-slate-800 text-sm">{tournament?.name}</h2>
-            {tournament?.creatorId?._id === user?.id && (
-              <span className="inline-flex items-center gap-1 text-[10px] bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full">
-                <Crown className="w-2.5 h-2.5" /> HOST
-              </span>
-            )}
+        {/* Header */}
+        <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+          <Link href={`/tournaments/${id}`} className="text-slate-400 hover:text-slate-700 transition">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+            <Trophy className="w-4 h-4 text-emerald-600" />
           </div>
-          <p className="text-xs text-slate-400">Tournament Chat · {totalMembers} participants</p>
-        </div>
-        {/* Toggle participants panel */}
-        <button
-          onClick={() => setShowParticipants((v) => !v)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition border border-slate-100 shrink-0"
-        >
-          <Users className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Members</span>
-          <ChevronRight className={`w-3 h-3 transition-transform ${showParticipants ? "rotate-180" : ""}`} />
-        </button>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto py-4 space-y-3">
-        {messages.length === 0 ? (
-          <div className="text-center py-16 text-slate-300">
-            <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-40" />
-            <p className="text-sm">No messages yet. Start the conversation!</p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="font-bold text-slate-800 text-sm">{tournament?.title || tournament?.name}</h2>
+              {tournament?.creatorId?._id === user?.id && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full">
+                  <Crown className="w-2.5 h-2.5" /> HOST
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-400">Tournament Chat · {totalMembers} participants</p>
           </div>
-        ) : (
-          messages.map((msg) => {
-            const isMe = msg.userId._id === user?.id;
-            const isHost = msg.userId._id === tournament?.creatorId?._id;
-            return (
-              <div key={msg._id} className={`flex gap-2 ${isMe ? "flex-row-reverse" : ""}`}>
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${isHost ? "bg-linear-to-br from-amber-400 to-orange-500" : "bg-linear-to-br from-emerald-400 to-indigo-500"}`}>
-                  {msg.userId.fullName?.[0]?.toUpperCase() || "?"}  
-                </div>
-                <div className={`max-w-xs lg:max-w-md ${isMe ? "items-end" : "items-start"} flex flex-col gap-0.5`}>
-                  <div className={`flex items-center gap-1.5 ${isMe ? "flex-row-reverse" : ""}`}>
-                    <span className="text-[10px] text-slate-400">{isMe ? "You" : msg.userId.fullName}</span>
-                    {isHost && (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded-full">
-                        <Crown className="w-2 h-2" /> HOST
-                      </span>
-                    )}
-                  </div>
-                  <div className={`px-3.5 py-2 rounded-2xl text-sm ${isHost && !isMe ? "bg-amber-50 border border-amber-200 text-slate-700 rounded-tl-sm" : isMe ? "bg-emerald-600 text-white rounded-tr-sm" : "bg-slate-100 text-slate-700 rounded-tl-sm"}`}>
-                    {msg.content}
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-        <div ref={bottomRef} />
-      </div>
-
-      {/* Input */}
-      <div className="pt-4 border-t border-slate-100">
-        <div className="flex items-center gap-2 bg-slate-50 rounded-2xl px-4 py-2">
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-            placeholder="Type a message…"
-            className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
-          />
+          {/* Toggle participants panel */}
           <button
-            aria-label="Send message"
-            onClick={sendMessage}
-            disabled={!text.trim()}
-            className="w-8 h-8 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white flex items-center justify-center transition"
+            onClick={() => setShowParticipants((v) => !v)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition border border-slate-100 shrink-0"
           >
-            <Send className="w-4 h-4" />
+            <Users className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Members</span>
+            <ChevronRight className={`w-3 h-3 transition-transform ${showParticipants ? "rotate-180" : ""}`} />
           </button>
         </div>
-      </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto py-4 space-y-3">
+          {messages.length === 0 ? (
+            <div className="text-center py-16 text-slate-300">
+              <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-40" />
+              <p className="text-sm">No messages yet. Start the conversation!</p>
+            </div>
+          ) : (
+            messages.map((msg) => {
+              const isMe = msg.userId._id === user?.id;
+              const isHost = msg.userId._id === tournament?.creatorId?._id;
+              return (
+                <div key={msg._id} className={`flex gap-2 ${isMe ? "flex-row-reverse" : ""}`}>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${isHost ? "bg-linear-to-br from-amber-400 to-orange-500" : "bg-linear-to-br from-emerald-400 to-indigo-500"}`}>
+                    {msg.userId.fullName?.[0]?.toUpperCase() || "?"}
+                  </div>
+                  <div className={`max-w-xs lg:max-w-md ${isMe ? "items-end" : "items-start"} flex flex-col gap-0.5`}>
+                    <div className={`flex items-center gap-1.5 ${isMe ? "flex-row-reverse" : ""}`}>
+                      <span className="text-[10px] text-slate-400">{isMe ? "You" : msg.userId.fullName}</span>
+                      {isHost && (
+                        <span className="inline-flex items-center gap-0.5 text-[9px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded-full">
+                          <Crown className="w-2 h-2" /> HOST
+                        </span>
+                      )}
+                    </div>
+                    <div className={`px-3.5 py-2 rounded-2xl text-sm ${isHost && !isMe ? "bg-amber-50 border border-amber-200 text-slate-700 rounded-tl-sm" : isMe ? "bg-emerald-600 text-white rounded-tr-sm" : "bg-slate-100 text-slate-700 rounded-tl-sm"}`}>
+                      {msg.content}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Input */}
+        <div className="pt-4 border-t border-slate-100">
+          <div className="flex items-center gap-2 bg-slate-50 rounded-2xl px-4 py-2">
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
+              placeholder="Type a message…"
+              className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+            />
+            <button
+              aria-label="Send message"
+              onClick={sendMessage}
+              disabled={!text.trim()}
+              className="w-8 h-8 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white flex items-center justify-center transition"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>{/* end chat column */}
 
       {/* ─── Participants Panel ───────────────────────── */}

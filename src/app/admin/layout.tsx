@@ -5,14 +5,16 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
     Users, LogOut, Gamepad2, BarChart3,
-    Shield, ChevronLeft, LayoutDashboard,
+    Shield, ChevronLeft, LayoutDashboard, Trophy, MessageSquare,
 } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/auth-store';
 
 const ADMIN_NAV = [
     { name: 'Overview', href: '/admin', icon: BarChart3 },
-    { name: 'Users', href: '/admin?tab=users', icon: Users },
-    { name: 'Games', href: '/admin?tab=games', icon: Gamepad2 },
+    { name: 'Users', href: '/admin/users', icon: Users },
+    { name: 'Games', href: '/admin/games', icon: Gamepad2 },
+    { name: 'Tournaments', href: '/admin/tournaments', icon: Trophy },
+    { name: 'Active Chats', href: '/admin/chats', icon: MessageSquare },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -50,22 +52,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </span>
                 </div>
 
-                {/* Back link */}
-                <div className="px-4 pt-4 pb-1">
-                    <Link
-                        href="/dashboard"
-                        className="flex items-center gap-1.5 text-[11px] font-semibold transition-colors px-2 py-1.5 rounded-lg"
-                        style={{ color: '#6B7280' }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#16A34A'; (e.currentTarget as HTMLElement).style.background = '#F0FDF4'; }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#6B7280'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-                    >
-                        <ChevronLeft size={13} />
-                        Back to Dashboard
-                    </Link>
-                </div>
-
                 {/* Nav */}
-                <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+                <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto mt-4">
                     <p className="text-[10px] font-bold uppercase tracking-widest px-3 mb-2" style={{ color: '#D1D5DB' }}>
                         Management
                     </p>
@@ -76,16 +64,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 key={item.name}
                                 href={item.href}
                                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-semibold"
-                                style={isActive
+                                style={isActive || pathname?.startsWith(item.href) && item.href !== '/admin'
                                     ? { background: '#F0FDF4', color: '#16A34A', borderLeft: '3px solid #16A34A' }
                                     : { color: '#6B7280' }
                                 }
-                                onMouseEnter={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = '#F8F9FA'; (e.currentTarget as HTMLElement).style.color = '#1F2937'; } }}
-                                onMouseLeave={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#6B7280'; } }}
+                                onMouseEnter={e => { if (!(isActive || pathname?.startsWith(item.href) && item.href !== '/admin')) { (e.currentTarget as HTMLElement).style.background = '#F8F9FA'; (e.currentTarget as HTMLElement).style.color = '#1F2937'; } }}
+                                onMouseLeave={e => { if (!(isActive || pathname?.startsWith(item.href) && item.href !== '/admin')) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#6B7280'; } }}
                             >
                                 <div
                                     className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                                    style={isActive
+                                    style={isActive || pathname?.startsWith(item.href) && item.href !== '/admin'
                                         ? { background: '#DCFCE7', color: '#16A34A' }
                                         : { background: '#F3F4F6', color: '#9CA3AF' }
                                     }

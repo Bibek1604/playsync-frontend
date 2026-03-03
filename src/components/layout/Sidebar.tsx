@@ -32,6 +32,7 @@ const NAV_ITEMS = [
     { icon: BarChart2, label: 'Analytics', href: '/analytics' },
     { icon: Wifi, label: 'Online Games', href: '/games/online' },
     { icon: WifiOff, label: 'Offline Games', href: '/games/offline' },
+    { icon: Trophy, label: 'Tournaments', href: '/tournaments' },
     { icon: Trophy, label: 'Rankings', href: '/rankings' },
     { icon: MessageSquare, label: 'Messages', href: '/messages' },
     { icon: Settings, label: 'Settings', href: '/settings' },

@@ -92,3 +92,35 @@ export interface QueryParams {
     radius?: number;
     [key: string]: string | number | undefined;
 }
+
+export interface Tournament {
+    _id: string;
+    title: string;
+    description: string;
+    type: 'ONLINE' | 'OFFLINE';
+    location?: string;
+    maxPlayers: number;
+    currentPlayers: number;
+    entryFee: number;
+    prizeDetails: string;
+    startTime: string;
+    status: 'OPEN' | 'FULL' | 'CLOSED';
+    adminId: string | User;
+    participants: (string | User)[];
+    isPaid?: boolean;
+    isParticipant?: boolean;
+    paymentStatus?: 'NOT_PAID' | 'PENDING' | 'SUCCESS' | 'FAILED';
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface PaymentTransaction {
+    _id: string;
+    tournamentId: string | Tournament;
+    payerId: string | User;
+    amount: number;
+    transactionId?: string;
+    status: 'PENDING' | 'SUCCESS' | 'FAILED';
+    createdAt: string;
+    updatedAt: string;
+}
