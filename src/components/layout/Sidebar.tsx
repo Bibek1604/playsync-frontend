@@ -75,22 +75,25 @@ export default function Sidebar() {
             {/* Brand */}
             <div className={`flex items-center gap-3 px-4 py-4 shrink-0 border-b border-gray-50 ${isCollapsed ? 'justify-center h-[72px]' : 'justify-center'}`}>
                 {isCollapsed ? (
-                    /* Collapsed: just the Zap icon */
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-green-600 shadow-sm flex-shrink-0">
-                        <Zap size={18} className="text-white" strokeWidth={2.5} />
-                    </div>
+                    /* Collapsed: small profile avatar */
+                    <Avatar
+                        src={(user as any)?.avatar || (user as any)?.profilePicture}
+                        fallback={user?.fullName || 'U'}
+                        size="sm"
+                        className="ring-2 ring-green-500 shadow-md"
+                    />
                 ) : (
-                    /* Expanded: the real /p.svg logo from footer */
-                    <img
-                        src="/p.svg"
-                        alt="PlaySync"
-                        className="h-12 w-auto object-contain"
+                    /* Expanded: larger profile avatar */
+                    <Avatar
+                        src={(user as any)?.avatar || (user as any)?.profilePicture}
+                        fallback={user?.fullName || 'U'}
+                        size="lg"
+                        className="ring-2 ring-green-500 shadow-lg"
                     />
                 )}
             </div>
 
-            {/* Profile Card Summary */}
-            {!isCollapsed && mounted && (
+            {/* {!isCollapsed && mounted && (
                 <div className="px-5 transition-all animate-fade-in py-2">
                     <div className="bg-gray-50/80 border border-gray-100 rounded-xl p-4 flex items-center gap-3 shadow-sm group/profile hover:bg-white hover:border-green-100 transition-all cursor-pointer">
                         <Avatar
@@ -109,7 +112,7 @@ export default function Sidebar() {
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
 
             {/* Navigation */}
             <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto py-4">

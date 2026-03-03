@@ -1,9 +1,10 @@
 "use client"
-import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { ArrowRight, Mail, Zap, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { ArrowRight, Mail, Zap, ShieldCheck, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui';
+import { authService } from '@/features/auth/api/auth-service';
 
 function VerifyOtpForm() {
     const searchParams = useSearchParams();
@@ -12,9 +13,20 @@ function VerifyOtpForm() {
     const [email, setEmail] = useState(emailParam);
     const [otpValues, setOtpValues] = useState<string[]>(['', '', '', '', '', '']);
     const [error, setError] = useState<string | null>(null);
+    const [resendSeconds, setResendSeconds] = useState(60);
+    const [isResending, setIsResending] = useState(false);
+    const [resendSuccess, setResendSuccess] = useState<string | null>(null);
 
+    const isAllFilled = otpValues.every((v) => v !== '');
     const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
     const router = useRouter();
+
+    // Countdown timer for resend
+    useEffect(() => {
+        if (resendSeconds <= 0) return;
+        const id = setInterval(() => setResendSeconds((s) => s - 1), 1000);
+        return () => clearInterval(id);
+    }, [resendSeconds]);
 
     // Initialize email from URL params
     useEffect(() => {
@@ -70,17 +82,36 @@ function VerifyOtpForm() {
         }
     };
 
+    // Resend OTP via API
+    const handleResendOtp = useCallback(async () => {
+        if (resendSeconds > 0 || isResending || !email) return;
+        setIsResending(true);
+        setError(null);
+        setResendSuccess(null);
+        try {
+            await authService.forgotPassword({ email });
+            setResendSuccess('A new OTP has been sent to your email.');
+            setOtpValues(['', '', '', '', '', '']);
+            otpRefs.current[0]?.focus();
+            setResendSeconds(60);
+        } catch {
+            setError('Failed to resend OTP. Please try again.');
+        } finally {
+            setIsResending(false);
+        }
+    }, [resendSeconds, isResending, email]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
 
         const otp = otpValues.join('');
         if (otp.length !== 6) {
-            setError("Please enter a valid 6-digit OTP");
+            setError('Please enter a valid 6-digit OTP');
             return;
         }
 
-        // Navigate to reset password page with email and OTP
+        // Navigate to reset-password — backend validates OTP there
         router.push(`/auth/reset-password?email=${encodeURIComponent(email)}&otp=${otp}`);
     };
 
@@ -145,8 +176,12 @@ function VerifyOtpForm() {
                                         onChange={(e) => handleOtpChange(index, e.target.value)}
                                         onKeyDown={(e) => handleOtpKeyDown(index, e)}
                                         onPaste={index === 0 ? handleOtpPaste : undefined}
-                                        className="w-12 h-14 text-center text-xl font-bold bg-gray-50 border-2 border-gray-200 focus:bg-white focus:border-green-500 rounded-lg outline-none transition-all shadow-sm font-mono"
-                                        placeholder="•"
+                                        className={`w-12 h-14 text-center text-xl font-bold rounded-lg outline-none transition-all font-mono ${
+                                            value
+                                                ? 'bg-green-50 border-2 border-green-500 text-green-700 shadow-[0_0_0_3px_rgba(22,163,74,0.12)]'
+                                                : 'bg-gray-50 border-2 border-gray-200 focus:bg-white focus:border-green-500 focus:shadow-[0_0_0_3px_rgba(22,163,74,0.12)] shadow-sm text-gray-900'
+                                        }`}
+                                        placeholder="·"
                                         required
                                     />
                                 ))}
@@ -160,11 +195,19 @@ function VerifyOtpForm() {
                             </div>
                         )}
 
+                        {resendSuccess && (
+                            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-100 rounded-lg text-green-700 text-sm font-bold">
+                                <ShieldCheck size={18} />
+                                {resendSuccess}
+                            </div>
+                        )}
+
                         <Button
                             type="submit"
                             isFullWidth
                             size="lg"
-                            className="h-12 rounded-lg font-bold text-base tracking-tight shadow-sm"
+                            disabled={!isAllFilled}
+                            className="h-12 rounded-lg font-bold text-base tracking-tight shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Continue to Reset Password
                             <ArrowRight size={20} className="ml-2" />
@@ -172,9 +215,22 @@ function VerifyOtpForm() {
                     </form>
 
                     <div className="mt-6 text-center">
-                        <Link href="/auth/forgot-password" className="text-sm font-bold text-gray-400 hover:text-green-600 transition-colors">
-                            Resend OTP
-                        </Link>
+                        {resendSeconds > 0 ? (
+                            <p className="text-sm text-gray-400 font-medium">
+                                Resend code in{' '}
+                                <span className="font-bold tabular-nums text-gray-600">{resendSeconds}s</span>
+                            </p>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={handleResendOtp}
+                                disabled={isResending}
+                                className="inline-flex items-center gap-1.5 text-sm font-bold text-gray-400 hover:text-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <RefreshCw size={14} className={isResending ? 'animate-spin' : ''} />
+                                {isResending ? 'Sending...' : "Didn't receive code? Resend OTP"}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

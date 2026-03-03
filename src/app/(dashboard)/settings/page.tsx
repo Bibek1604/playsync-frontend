@@ -48,6 +48,7 @@ export default function SettingsPage() {
         fullName: "",
         phone: "",
         place: "",
+        bio: "",
         favoriteGame: "",
         currentPassword: "",
         newPassword: "",
@@ -99,17 +100,20 @@ export default function SettingsPage() {
                 fullName: profile?.fullName || user?.fullName || "",
                 phone: profile?.phone || "",
                 place: profile?.place || "",
+                bio: profile?.bio || "",
                 favoriteGame: profile?.favoriteGame || "",
             }));
 
-            // Set profile picture preview if available
-            const profilePicUrl = profile?.profilePicture;
+            // Set profile picture preview if available (support both avatar and profilePicture)
+            const profilePicUrl = profile?.avatar || profile?.profilePicture;
             if (profilePicUrl) {
                 // Construct full URL if it's a relative path
                 const fullUrl = profilePicUrl.startsWith('http')
                     ? profilePicUrl
                     : `${API_URL}${profilePicUrl}`;
                 setPreviewUrl(fullUrl);
+            } else {
+                setPreviewUrl(null);
             }
         }
     }, [user, profile]);
@@ -155,11 +159,12 @@ export default function SettingsPage() {
         data.append('fullName', formData.fullName);
         if (formData.phone) data.append('phone', formData.phone);
         if (formData.place) data.append('place', formData.place);
+        if (formData.bio) data.append('bio', formData.bio);
         if (formData.favoriteGame) data.append('favoriteGame', formData.favoriteGame);
 
-        // Append file if selected (backend expects 'profilePicture')
+        // Append file if selected (backend expects 'avatar')
         if (selectedFile) {
-            data.append('profilePicture', selectedFile);
+            data.append('avatar', selectedFile);
         }
 
         // Call update action
@@ -167,6 +172,8 @@ export default function SettingsPage() {
         if (success) {
             toast.success("Profile updated successfully!");
             setSelectedFile(null);
+            // Refresh profile data to reflect changes
+            await fetchProfile();
         } else {
             toast.error("Failed to update profile.");
         }
@@ -410,6 +417,20 @@ export default function SettingsPage() {
                                                     onChange={handleChange}
                                                     className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50/50 rounded-lg outline-none transition-all font-bold text-gray-900 placeholder:text-gray-300 shadow-sm"
                                                     placeholder="Valorant / FIFA / CS2"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2.5 col-span-1 md:col-span-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">Bio Protocol</label>
+                                            <div className="relative group/field">
+                                                <textarea
+                                                    name="bio"
+                                                    value={formData.bio}
+                                                    onChange={(e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))}
+                                                    rows={3}
+                                                    className="w-full px-5 py-3.5 bg-gray-50 border border-gray-100 focus:bg-white focus:border-green-400 focus:ring-4 focus:ring-green-50/50 rounded-lg outline-none transition-all font-bold text-gray-900 placeholder:text-gray-300 shadow-sm resize-none"
+                                                    placeholder="Tell us about yourself..."
                                                 />
                                             </div>
                                         </div>

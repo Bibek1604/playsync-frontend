@@ -8,6 +8,7 @@ import {
     Shield, ChevronLeft, LayoutDashboard, Trophy, MessageSquare,
 } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/auth-store';
+import { Avatar } from '@/components/ui';
 
 const ADMIN_NAV = [
     { name: 'Overview', href: '/admin', icon: BarChart3 },
@@ -34,14 +35,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <aside className="w-60 bg-white flex flex-col flex-shrink-0"
                 style={{ borderRight: '1px solid #E5E7EB' }}>
 
-                {/* Logo — transparent background, original colors */}
+                {/* Profile Avatar */}
                 <div className="flex flex-col items-center px-5 pt-5 pb-4"
                     style={{ borderBottom: '1px solid #E5E7EB' }}>
-                    <img
-                        src="/p.svg"
-                        alt="PlaySync"
-                        className="w-auto object-contain"
-                        style={{ height: '56px' }}
+                    <Avatar
+                        src={(user as any)?.avatar || (user as any)?.profilePicture}
+                        fallback={user?.fullName || 'A'}
+                        size="lg"
+                        className="ring-2 ring-green-500 shadow-lg"
                     />
                     <span
                         className="mt-2 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"

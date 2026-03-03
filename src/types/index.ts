@@ -18,9 +18,11 @@ export interface Profile {
     fullName: string;
     email: string;
     phone?: string;
+    bio?: string;
     favoriteGame?: string;
     place?: string;
-    profilePicture?: string;
+    avatar?: string;
+    profilePicture?: string; // Deprecated: Use avatar instead
     points?: number;
 }
 

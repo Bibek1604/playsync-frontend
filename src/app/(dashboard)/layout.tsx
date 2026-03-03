@@ -4,6 +4,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { useRouter } from "next/navigation";
+import { Avatar } from "@/components/ui";
 
 export default function DashboardLayout({
     children,
@@ -27,12 +28,21 @@ export default function DashboardLayout({
         return (
             <div className="h-screen w-full flex items-center justify-center bg-white">
                 <div className="flex flex-col items-center gap-6">
-                    {/* Logo mark */}
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-green-600 shadow-sm animate-pulse">
-                        <svg width="28" height="28" fill="none" viewBox="0 0 24 24" className="text-white">
-                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="currentColor" />
-                        </svg>
-                    </div>
+                    {/* Profile Avatar or Logo mark */}
+                    {user ? (
+                        <Avatar
+                            src={(user as any)?.avatar || (user as any)?.profilePicture}
+                            fallback={user?.fullName || 'U'}
+                            size="xl"
+                            className="ring-4 ring-green-500 shadow-lg animate-pulse"
+                        />
+                    ) : (
+                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-green-600 shadow-sm animate-pulse">
+                            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" className="text-white">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="currentColor" />
+                            </svg>
+                        </div>
+                    )}
                     <div className="flex flex-col items-center gap-2">
                         <div className="w-5 h-5 rounded-full border-2 border-gray-100 border-t-green-600 animate-spin" />
                         <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Initialising Workspace</span>

@@ -45,6 +45,14 @@ export const authService = {
         await apiClient.post(ENDPOINTS.AUTH.FORGOT_PASSWORD, data);
     },
 
+    verifyOtp: async (data: { email: string; otp: string }): Promise<{ valid: boolean }> => {
+        const response = await apiClient.post<{ success: boolean; valid: boolean; message: string }>(
+            ENDPOINTS.AUTH.VERIFY_OTP,
+            data
+        );
+        return { valid: response.data.valid };
+    },
+
     resetPassword: async (data: { email: string; otp: string; newPassword: string; confirmPassword: string }): Promise<void> => {
         await apiClient.post(ENDPOINTS.AUTH.RESET_PASSWORD, data);
     }

@@ -99,13 +99,13 @@ export const useAuthStore = create<AuthState>()(
                         user: state.user ? {
                             ...state.user,
                             fullName: profile.fullName,
-                            avatar: profile.profilePicture || state.user.avatar,
-                            profilePicture: profile.profilePicture
+                            email: profile.email || state.user.email,
+                            avatar: profile.avatar || profile.profilePicture || state.user.avatar
                         } as unknown as typeof state.user : null,
                         isLoading: false
                     }));
                 } catch (error) {
-                    console.error(error);
+                    console.error('Fetch profile error:', error);
                     set({ isLoading: false });
                 }
             },
@@ -120,13 +120,14 @@ export const useAuthStore = create<AuthState>()(
                         user: state.user ? {
                             ...state.user,
                             fullName: profile.fullName,
-                            avatar: profile.profilePicture || state.user.avatar,
-                            profilePicture: profile.profilePicture // Inject this because many components read user.profilePicture
+                            avatar: profile.avatar || profile.profilePicture || state.user.avatar,
+                            email: profile.email || state.user.email
                         } as unknown as typeof state.user : null,
                         isLoading: false
                     }));
                     return true;
-                } catch {
+                } catch (error) {
+                    console.error('Update profile error:', error);
                     set({ isLoading: false });
                     return false;
                 }
@@ -147,10 +148,10 @@ export const useAuthStore = create<AuthState>()(
             name: 'auth-storage',
             partialize: (state) => ({
                 user: state.user,
+                profile: state.profile,
                 isAuthenticated: state.isAuthenticated,
                 accessToken: state.accessToken,
                 refreshToken: state.refreshToken,
-                // profile: state.profile // Optional: persist profile if needed
             }),
             onRehydrateStorage: () => (state) => {
                 state?.setHydrated();

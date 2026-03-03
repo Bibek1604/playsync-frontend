@@ -12,6 +12,8 @@ import { ToastContainer } from '@/components/NotificationToast';
 import { useNotificationToasts } from '@/hooks/useNotificationToasts';
 import NotificationDropdown from '@/features/notifications/components/NotificationDropdown';
 import PlayerHistorySidebar from '@/components/PlayerHistorySidebar';
+import { Avatar } from '@/components/ui';
+import { useAuthStore } from '@/features/auth/store/auth-store';
 import Link from 'next/link';
 import { Bell, Clock, User, History, Menu } from 'lucide-react';
 
@@ -31,6 +33,7 @@ const queryClient = new QueryClient({
  */
 function LayoutContent({ children }: { children: ReactNode }) {
     const { toasts, dismissToast } = useNotificationToasts();
+    const { user } = useAuthStore();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
@@ -45,9 +48,15 @@ function LayoutContent({ children }: { children: ReactNode }) {
             <nav className="bg-white border-b border-slate-200 sticky top-0 z-30">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        {/* Logo */}
-                        <Link href="/" className="text-2xl font-bold text-emerald-600">
-                            PlaySync
+                        {/* Profile Avatar */}
+                        <Link href="/" className="flex items-center gap-3">
+                            <Avatar
+                                src={(user as any)?.avatar || (user as any)?.profilePicture}
+                                fallback={user?.fullName || 'U'}
+                                size="sm"
+                                className="ring-2 ring-emerald-500"
+                            />
+                            <span className="text-2xl font-bold text-emerald-600">PlaySync</span>
                         </Link>
 
                         {/* Navigation Links */}
