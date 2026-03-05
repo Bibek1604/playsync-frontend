@@ -98,14 +98,41 @@ export const tournamentApi = {
     };
   },
 
-  verifyPayment: async (transactionUuid: string) => {
-    const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.VERIFY_PAYMENT, { params: { data: transactionUuid } });
-    return res.data;
+  verifyPayment: async (transactionUuid?: string) => {
+    const params = transactionUuid ? { data: transactionUuid } : {};
+    console.log(`[API] verifyPayment called with uuid=${transactionUuid || 'fallback mode'}`);
+    try {
+      const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.VERIFY_PAYMENT, { params });
+      console.log(`[API] verifyPayment success`);
+      return res.data;
+    } catch (err) {
+      console.error(`[API] verifyPayment error:`, err);
+      throw err;
+    }
   },
 
   getPaymentStatus: async (tournamentId: string) => {
-    const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.PAYMENT_STATUS(tournamentId));
-    return res.data.data as { status: 'pending' | 'success' | 'failed' | null };
+    console.log(`[API] getPaymentStatus called for tournament ${tournamentId}`);
+    try {
+      const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.PAYMENT_STATUS(tournamentId));
+      console.log(`[API] getPaymentStatus response:`, res?.data);
+
+      const data = res.data?.data;
+      if (!data) {
+        console.warn(`[API] Empty data in response`);
+        return { status: null };
+      }
+
+      return {
+        status: (data.status || "").toLowerCase() as 'pending' | 'success' | 'failed' | null,
+        paymentId: data.paymentId,
+        amount: data.amount,
+        transactionId: data.transactionId
+      };
+    } catch (err) {
+      console.error(`[API] getPaymentStatus error:`, err);
+      throw err;
+    }
   },
 
   checkChatAccess: async (tournamentId: string) => {

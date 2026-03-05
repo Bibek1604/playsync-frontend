@@ -32,20 +32,12 @@ export default function Header() {
       >
         <div className="flex items-center justify-between">
           {/* --- Brand Identity --- */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative">
-              <div className="w-11 h-11 rounded-xl bg-green-600 flex items-center justify-center text-white shadow-lg shadow-green-100 group-hover:scale-110 group-hover:rotate-[10deg] transition-all duration-300">
-                <Gamepad2 className="w-6 h-6 fill-white/20" />
-              </div>
-              {/* Pro Badge dot */}
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 border-2 border-white rounded-full" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold text-gray-900 tracking-tighter leading-none">
-                PLAY<span className="text-green-600">SYNC</span>
-              </span>
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Professional</span>
-            </div>
+          <Link href="/" className="flex items-center group">
+            <img
+              src="/image.png"
+              alt="PlaySync"
+              className="h-10 w-auto group-hover:scale-110 transition-transform duration-300"
+            />
           </Link>
 
           {/* --- Desktop Navigation --- */}

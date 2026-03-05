@@ -8,6 +8,17 @@ interface ApiResponse<T> {
     data: T;
 }
 
+interface InitiatePaymentResponse {
+    paymentUrl: string;
+    params: Record<string, string>;
+    paymentId: string;
+    transactionId?: string;
+    amount?: number;
+    productCode?: string;
+    signature?: string;
+    signedFieldNames?: string;
+}
+
 export const tournamentService = {
     getAll: async (): Promise<Tournament[]> => {
         const response = await apiClient.get<ApiResponse<Tournament[]>>(ENDPOINTS.TOURNAMENTS.LIST);
@@ -26,9 +37,9 @@ export const tournamentService = {
 };
 
 export const paymentService = {
-    initiatePayment: async (tournamentId: string) => {
-        const response = await apiClient.post<ApiResponse<any>>(ENDPOINTS.PAYMENTS.INITIATE, { tournamentId });
-        return response.data.data; // contains transactionId, signature, etc.
+    initiatePayment: async (tournamentId: string): Promise<InitiatePaymentResponse> => {
+        const response = await apiClient.post<ApiResponse<InitiatePaymentResponse>>(ENDPOINTS.PAYMENTS.INITIATE, { tournamentId });
+        return response.data.data;
     },
 
     verifyPayment: async (dataBase64: string): Promise<void> => {

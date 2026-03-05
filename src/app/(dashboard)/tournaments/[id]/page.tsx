@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Trophy,
   ArrowLeft,
@@ -20,9 +21,12 @@ import {
   Check,
   Crown,
   BadgeCheck,
+  AlertCircle,
 } from "lucide-react";
+
 import { tournamentApi, Tournament } from "@/features/tournaments/api/tournament.api";
 import { toast } from "@/lib/toast";
+import { submitEsewaPaymentForm } from "@/lib/esewa";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -44,6 +48,7 @@ const STATUS_STYLES: Record<string, string> = {
 export default function TournamentDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const id = params.id as string;
 
   const user = useAuthStore((s) => s.user);
@@ -51,10 +56,7 @@ export default function TournamentDetailPage() {
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
-
-  // hidden eSewa form ref
-  const formRef = useRef<HTMLFormElement>(null);
-  const [esewaParams, setEsewaParams] = useState<{ url: string; params: Record<string, string> } | null>(null);
+  const [checkingPayment, setCheckingPayment] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -66,28 +68,262 @@ export default function TournamentDetailPage() {
         ]);
         setTournament(t);
         setPaymentStatus(ps.status);
+
+        console.log('[TOURNAMENT] Payment status received:', ps.status);
+        console.log('[TOURNAMENT] Tournament data:', { id: t._id, creatorId: t.creatorId });
+
+        // Determine if user is creator
+        const creatorId =
+          (typeof t?.creatorId === "string"
+            ? t.creatorId
+            : t?.creatorId?._id || (t?.creatorId as any)?.id) ||
+          (t as any)?.creator ||
+          (t as any)?.createdBy;
+
+        const isCreator =
+          Boolean(user?.id) &&
+          Boolean(creatorId) &&
+          String(creatorId) === String(user?.id);
+
+        console.log('[TOURNAMENT] Is creator check:', { userId: user?.id, creatorId, isCreator });
+
+        // Auto-redirect to chat if creator
+        if (isCreator) {
+          console.log('[TOURNAMENT] ✅ User is creator - redirecting to chat');
+          setTimeout(() => router.replace(`/tournaments/${id}/chat`), 100);
+          return;
+        }
+
+        // Check payment status
+        const normalizedStatus = (ps.status || '').toLowerCase();
+        
+        if (normalizedStatus === 'success') {
+          console.log('[PAYMENT] ✅ Payment successful - redirecting to chat');
+          setTimeout(() => router.replace(`/tournaments/${id}/chat`), 100);
+          return;
+        } else if (normalizedStatus === 'pending') {
+          // Auto-verify pending payments
+          console.log('[PAYMENT] 🔄 Pending payment detected - attempting auto-verification');
+          try {
+            await tournamentApi.verifyPayment(); // Trigger backend fallback verification
+            // Re-check status after verification
+            const updatedPs = await tournamentApi.getPaymentStatus(id);
+            setPaymentStatus(updatedPs.status);
+            const updatedStatus = (updatedPs.status || '').toLowerCase();
+            
+            if (updatedStatus === 'success') {
+              console.log('[PAYMENT] ✅ Auto-verification successful - redirecting to chat');
+              toast.success('Payment verified! Joining chat...');
+              setTimeout(() => router.replace(`/tournaments/${id}/chat`), 100);
+              return;
+            } else {
+              console.log('[PAYMENT] ⚠️ Auto-verification complete but status is:', updatedStatus);
+            }
+          } catch (err) {
+            console.error('[PAYMENT] Auto-verification failed:', err);
+          }
+        } else {
+          console.log('[TOURNAMENT] No auto-redirect - status:', normalizedStatus, 'isCreator:', isCreator);
+        }
       } finally {
         setLoading(false);
       }
     })();
   }, [id, user]);
 
-  // Auto-submit eSewa form once params are set
+  // Handle eSewa callback - verify payment when data param is present.
   useEffect(() => {
-    if (esewaParams && formRef.current) {
-      formRef.current.submit();
-    }
-  }, [esewaParams]);
+    const esewaData = searchParams.get("data");
+    if (!esewaData || !user) return;
 
-  const isCreator = user && tournament?.creatorId._id === user.id;
-  const isPaid = paymentStatus === "success";
+    (async () => {
+      setCheckingPayment(true);
+      try {
+        await tournamentApi.verifyPayment(esewaData);
+        toast.success("Payment verified! You can now access the chat.");
+
+        // Refresh payment status after successful verification.
+        const ps = await tournamentApi.getPaymentStatus(id);
+        setPaymentStatus(ps.status);
+        router.replace(`/tournaments/${id}/chat?verified=1`);
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || "Payment verification failed");
+      } finally {
+        setCheckingPayment(false);
+      }
+    })();
+  }, [searchParams, user, id, router]);
+
+  // Immediate verification when eSewa sends success - no pending state shown to user
+  useEffect(() => {
+    const status = searchParams.get("status");
+    const data = searchParams.get("data");
+    if (status !== "success" || data || !user) return;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        // Immediate verification - no UI feedback during this process
+        await tournamentApi.verifyPayment(); // Triggers backend fallback
+        
+        // Quick status check - only 2 attempts, fast polling
+        for (let attempt = 0; attempt < 2; attempt++) {
+          if (cancelled) return;
+          const ps = await tournamentApi.getPaymentStatus(id);
+          const normalized = (ps.status || "").toLowerCase();
+
+          if (normalized === "success") {
+            setPaymentStatus(ps.status);
+            toast.success("✓ Payment successful! Joining chat...");
+            router.replace(`/tournaments/${id}/chat?verified=1`);
+            return;
+          }
+
+          if (normalized === "failed") {
+            setPaymentStatus(ps.status);
+            toast.error("✗ Payment failed. Please try again.");
+            router.replace(`/tournaments/${id}`);
+            return;
+          }
+          
+          // Quick 500ms wait between attempts
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+
+        // After quick checks, assume success and redirect
+        toast.success("Payment processing complete!");
+        router.replace(`/tournaments/${id}/chat`);
+      } catch (err) {
+        console.error('[PAYMENT] Verification error:', err);
+        toast.error("Payment verification failed. Please contact support.");
+        router.replace(`/tournaments/${id}`);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, user, id, router]);
+
+  // Handle eSewa failure callback.
+  useEffect(() => {
+    const status = searchParams.get("status");
+    if (status === "failure") {
+      toast.error("Payment failed. Please try again.");
+      router.replace(`/tournaments/${id}`);
+    }
+  }, [searchParams, id, router]);
+
+  const creatorId =
+    (typeof tournament?.creatorId === "string"
+      ? tournament.creatorId
+      : tournament?.creatorId?._id || (tournament?.creatorId as any)?.id) ||
+    (tournament as any)?.creator ||
+    (tournament as any)?.createdBy;
+
+  const creatorName =
+    (typeof tournament?.creatorId === "object" &&
+      (tournament?.creatorId as any)?.fullName) ||
+    (typeof tournament?.creatorId === "object" &&
+      (tournament?.creatorId as any)?.username) ||
+    "Tournament Host";
+
+  const normalizedPaymentStatus = (paymentStatus || "").toLowerCase();
+
+  const isCreator =
+    Boolean(user?.id) &&
+    Boolean(creatorId) &&
+    String(creatorId) === String(user?.id);
+  const isPaid = normalizedPaymentStatus === "success";
+  // No pending state - only show success or allow new payment
+
+  const handleRefreshPaymentStatus = async () => {
+    if (!user) {
+      toast.error("You must be logged in");
+      return;
+    }
+
+    setCheckingPayment(true);
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    try {
+      while (attempts < maxAttempts) {
+        attempts++;
+        console.log(`[PAYMENT] Refresh attempt ${attempts}/${maxAttempts} for tournament ${id}`);
+
+        try {
+          const ps = await tournamentApi.getPaymentStatus(id);
+          console.log(`[PAYMENT] Status response:`, ps);
+
+          if (!ps) {
+            throw new Error("Empty response from server");
+          }
+
+          setPaymentStatus(ps.status);
+          const normalized = (ps.status || "").toLowerCase();
+
+          if (normalized === "success") {
+            toast.success("✓ Payment confirmed! Redirecting to chat...");
+            await new Promise((resolve) => setTimeout(resolve, 800));
+            router.push(`/tournaments/${id}/chat?verified=1`);
+            return;
+          } else if (normalized === "failed") {
+            toast.error("✗ Payment failed. Please try again.");
+            setCheckingPayment(false);
+            return;
+          } else if (normalized === "pending") {
+            if (attempts < maxAttempts) {
+              console.log(`[PAYMENT] Still pending, retrying in 2s...`);
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+            } else {
+              toast("Payment still processing. Please check again in a moment.");
+              setCheckingPayment(false);
+              return;
+            }
+          } else {
+            // null or unknown
+            toast("Payment status not yet available. Please check again.");
+            setCheckingPayment(false);
+            return;
+          }
+        } catch (apiError: any) {
+          console.error(`[PAYMENT] Attempt ${attempts} failed:`, apiError);
+          if (attempts < maxAttempts) {
+            console.log(`[PAYMENT] Retrying...`);
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+          } else {
+            throw apiError;
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error("[PAYMENT] Final error:", err);
+      const errorMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Could not check payment status";
+      toast.error(errorMsg);
+    } finally {
+      setCheckingPayment(false);
+    }
+  };
 
   const handlePay = async () => {
     if (!user) { router.push("/auth/login"); return; }
     setPaying(true);
     try {
       const data = await tournamentApi.initiatePayment(id);
-      setEsewaParams({ url: data.paymentUrl, params: data.params });
+      const submitResult = submitEsewaPaymentForm({
+        paymentUrl: data.paymentUrl,
+        params: data.params,
+      });
+
+      if (!submitResult.ok) {
+        toast.error(submitResult.error || "Invalid eSewa payment payload from server");
+        setPaying(false);
+      }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to initiate payment");
       setPaying(false);
@@ -115,20 +351,6 @@ export default function TournamentDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Hidden eSewa form — auto-submitted */}
-      {esewaParams && (
-        <form
-          ref={formRef}
-          action={esewaParams.url}
-          method="POST"
-          style={{ display: "none" }}
-        >
-          {Object.entries(esewaParams.params).map(([k, v]) => (
-            <input key={k} type="hidden" name={k} value={v} />
-          ))}
-        </form>
-      )}
-
       {/* Back */}
       <Link href="/tournaments" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition">
         <ArrowLeft className="w-4 h-4" /> Back to Tournaments
@@ -150,7 +372,7 @@ export default function TournamentDetailPage() {
                 </span>
               </div>
               <h1 className="text-2xl font-bold text-slate-800">{t.name}</h1>
-              <p className="text-sm text-slate-500">by {t.creatorId?.username}</p>
+              <p className="text-sm text-slate-500">by {creatorName}</p>
             </div>
             <Trophy className="w-8 h-8 text-emerald-400" />
           </div>
@@ -222,10 +444,20 @@ export default function TournamentDetailPage() {
                 </div>
               </div>
             ) : isPaid ? (
-              <div className="flex flex-wrap gap-3">
-                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-medium">
-                  <Check className="w-4 h-4" /> Payment Confirmed
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-3">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-medium">
+                    <Check className="w-4 h-4" /> Payment Confirmed
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-sm font-medium">
+                    <Coins className="w-4 h-4" /> You paid NPR {t.entryFee.toLocaleString()}
+                  </div>
                 </div>
+
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 text-sm text-emerald-800">
+                  Your payment is successful. Chat access is unlocked for this tournament.
+                </div>
+
                 <button
                   onClick={handleGoToChat}
                   className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition text-sm"

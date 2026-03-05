@@ -3,6 +3,7 @@
 import React from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { tournamentService, paymentService } from '@/features/tournaments/api/tournament-service';
+import { submitEsewaPaymentForm } from '@/lib/esewa';
 import { Trophy, MapPin, Users, Coins, ArrowRight, ShieldCheck, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -15,35 +16,14 @@ export default function TournamentsPage() {
     const initiatePaymentMutation = useMutation({
         mutationFn: paymentService.initiatePayment,
         onSuccess: (data) => {
-            // eSewa Form submission
-            const form = document.createElement('form');
-            form.setAttribute('method', 'POST');
-            form.setAttribute('action', 'https://rc-epay.esewa.com.np/api/epay/main/v2/form');
+            const submitResult = submitEsewaPaymentForm({
+                paymentUrl: data.paymentUrl,
+                params: data.params,
+            });
 
-            const params: Record<string, string> = {
-                amount: data.amount.toString(),
-                tax_amount: '0',
-                total_amount: data.amount.toString(),
-                transaction_uuid: data.transactionId,
-                product_code: data.productCode,
-                product_delivery_charge: '0',
-                product_service_charge: '0',
-                success_url: `${window.location.origin}/tournaments/payment/success`,
-                failure_url: `${window.location.origin}/tournaments?payment=failed`,
-                signed_field_names: data.signedFieldNames,
-                signature: data.signature,
-            };
-
-            for (const key in params) {
-                const hiddenField = document.createElement('input');
-                hiddenField.setAttribute('type', 'hidden');
-                hiddenField.setAttribute('name', key);
-                hiddenField.setAttribute('value', params[key]);
-                form.appendChild(hiddenField);
+            if (!submitResult.ok) {
+                toast.error(submitResult.error || 'Invalid eSewa payment payload from server');
             }
-
-            document.body.appendChild(form);
-            form.submit();
         },
         onError: (err: any) => {
             toast.error(err.response?.data?.message || 'Failed to initiate payment');
@@ -95,6 +75,8 @@ export default function TournamentsPage() {
                 {tournaments?.map((t) => {
                     const isClosed = t.status === 'CLOSED';
                     const isFull = t.status === 'FULL' || t.currentPlayers >= t.maxPlayers;
+                    const normalizedPaymentStatus = (t.paymentStatus || '').toLowerCase();
+                    // No pending state - only show paid or not paid
 
                     return (
                         <div key={t._id} className="group relative bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-gray-200/50 hover:border-gray-200 transition-all duration-300 flex flex-col">
