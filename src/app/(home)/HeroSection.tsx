@@ -62,7 +62,7 @@ function HeroSection() {
 
             <div className="space-y-6">
               <div className="space-y-4">
-                <img src="/p.svg" alt="PlaySync Logo" className="h-64 lg:h-80 w-auto" />
+                <img src="/image.png" alt="PlaySync Logo" className="h-64 lg:h-80 w-auto drop-shadow-2xl" />
                 <h1 className="text-6xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
                     Pro-Elite.
@@ -192,7 +192,7 @@ function HeroSection() {
 
             {/* Floating Decorative Elements that also "Move" subtly */}
             <div className="absolute -top-6 -right-6 p-4 bg-white rounded-2xl shadow-xl border border-slate-100 animate-bounce-slow">
-              <img src="/p.svg" alt="Logo" className="w-8 h-8" />
+              <img src="/image.png" alt="Logo" className="w-8 h-8 object-contain" />
             </div>
             <div className="absolute -bottom-4 -left-4 p-4 bg-white rounded-2xl shadow-xl border border-slate-100">
               <Target className="w-6 h-6 text-slate-800" />

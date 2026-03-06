@@ -127,13 +127,12 @@ function VerifyOtpForm() {
             <div className="w-full max-w-110 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 {/* Brand */}
                 <div className="text-center mb-10">
-                    <Link href="/" className="inline-flex items-center gap-3 mb-8 group">
-                        <div className="w-12 h-12 rounded-lg bg-green-600 flex items-center justify-center shadow-lg shadow-green-100 transition-transform group-hover:scale-105">
-                            <Zap size={24} className="text-white" strokeWidth={2.5} />
-                        </div>
-                        <span className="font-extrabold text-2xl tracking-tighter text-gray-900">
-                            Play<span className="text-green-600">Sync</span>
-                        </span>
+                                        <Link href="/" className="inline-flex items-center mb-8 group">
+                        <img
+                          src="/image.png"
+                          alt="PlaySync"
+                          className="h-10 w-auto group-hover:scale-110 transition-transform duration-300"
+                        />
                     </Link>
                     <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">Verify OTP</h1>
                     <p className="text-gray-500 font-medium text-sm">Enter the 6-digit code sent to your email.</p>
@@ -176,11 +175,10 @@ function VerifyOtpForm() {
                                         onChange={(e) => handleOtpChange(index, e.target.value)}
                                         onKeyDown={(e) => handleOtpKeyDown(index, e)}
                                         onPaste={index === 0 ? handleOtpPaste : undefined}
-                                        className={`w-12 h-14 text-center text-xl font-bold rounded-lg outline-none transition-all font-mono ${
-                                            value
+                                        className={`w-12 h-14 text-center text-xl font-bold rounded-lg outline-none transition-all font-mono ${value
                                                 ? 'bg-green-50 border-2 border-green-500 text-green-700 shadow-[0_0_0_3px_rgba(22,163,74,0.12)]'
                                                 : 'bg-gray-50 border-2 border-gray-200 focus:bg-white focus:border-green-500 focus:shadow-[0_0_0_3px_rgba(22,163,74,0.12)] shadow-sm text-gray-900'
-                                        }`}
+                                            }`}
                                         placeholder="·"
                                         required
                                     />

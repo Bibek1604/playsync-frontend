@@ -52,11 +52,14 @@ export default function AdminTournamentsPage() {
         enabled: isReady && view === 'transactions'
     });
 
-    const { data: tournaments, isLoading: tournamentsLoading } = useQuery({
+    const { data: rawTournaments, isLoading: tournamentsLoading } = useQuery({
         queryKey: ['tournaments'],
         queryFn: () => tournamentService.getAll(),
         enabled: isReady && view === 'active'
     });
+
+    // Ensure tournaments is always an array
+    const tournaments = Array.isArray(rawTournaments) ? rawTournaments : [];
 
     const handleCreate = (e: React.FormEvent) => {
         e.preventDefault();
@@ -67,9 +70,14 @@ export default function AdminTournamentsPage() {
             toast.error('Location is required for offline tournaments'); return;
         }
         createMutation.mutate({
-            title, description, type, location,
-            maxPlayers: Number(maxPlayers), entryFee: Number(entryFee),
-            prizeDetails, startTime: new Date(startTime).toISOString()
+            name: title,
+            description,
+            type,
+            location,
+            maxPlayers: Number(maxPlayers),
+            entryFee: Number(entryFee),
+            prize: prizeDetails,
+            startDate: new Date(startTime).toISOString()
         });
     };
 

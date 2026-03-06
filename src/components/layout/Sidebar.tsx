@@ -258,7 +258,7 @@ export default function Sidebar() {
             {/* Mobile Header */}
             <div className="lg:hidden h-16 flex items-center justify-between px-4 sticky top-0 z-40 bg-white border-b border-gray-100">
                 <div className="flex items-center">
-                    <img src="/p.svg" alt="PlaySync" className="h-auto w-auto max-h-12" />
+                    <img src="/image.png" alt="PlaySync" className="h-10 w-auto" />
                 </div>
                 <button
                     onClick={() => setMobileOpen(!mobileOpen)}

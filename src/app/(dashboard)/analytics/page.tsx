@@ -174,14 +174,14 @@ export default function AnalyticsPage() {
                         <div>
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Win Rate</p>
                             <h3 className="text-2xl font-bold text-gray-900">
-                                {Number(scorecard?.winRate || 0).toFixed(2)}%
+                                {Number(scorecard?.winRate || 0).toFixed(0)}%
                             </h3>
                         </div>
                     </div>
                     <div className="h-2 bg-gray-50 rounded-full overflow-hidden border border-gray-100">
                         <div
                             className="h-full bg-green-600 rounded-full shadow-sm"
-                            style={{ width: `${Number(scorecard?.winRate || 0).toFixed(2)}%` }}
+                            style={{ width: `${Number(scorecard?.winRate || 0).toFixed(0)}%` }}
                         />
                     </div>
                 </Card>
@@ -272,7 +272,7 @@ export default function AnalyticsPage() {
                         <div className="h-[220px] w-full relative">
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
                                 <p className="text-3xl font-bold text-gray-900 leading-none">
-                                    {Number(scorecard?.winRate || 0).toFixed(2)}%
+                                    {Number(scorecard?.winRate || 0).toFixed(0)}%
                                 </p>
                                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Win Rate</p>
                             </div>

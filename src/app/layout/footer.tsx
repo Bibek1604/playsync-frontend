@@ -27,7 +27,7 @@ export const Footer = () => {
           {/* Brand Column */}
           <div className="md:col-span-1 space-y-8">
             <div className="flex items-center">
-              <img src="/p.svg" alt="PlaySync Logo" className="h-48 w-auto hover:grayscale-0 grayscale transition-all duration-500" />
+              <img src="/image.png" alt="PlaySync" className="h-10 w-auto" />
             </div>
             <p className="text-[11px] font-bold text-gray-400 leading-relaxed max-w-[200px] uppercase tracking-widest">
               The standard for quantitative performance tracking and global competition metrics.

@@ -40,11 +40,9 @@ function getAvatarColor(name: string): string {
 
 /* ── detect if text is purely emoji ── */
 const EMOJI_REGEX = /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Emoji_Modifier_Base}|\u200d)+$/u;
-function isPureEmoji(text: string | undefined | null): boolean {
+function isPureEmoji(text: string | undefined): boolean {
     if (!text) return false;
-    const trimmed = text.trim();
-    if (!trimmed) return false;
-    return EMOJI_REGEX.test(trimmed) && trimmed.length <= 12;
+    return EMOJI_REGEX.test(text.trim()) && text.trim().length <= 12;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({

@@ -97,17 +97,21 @@ export interface QueryParams {
 
 export interface Tournament {
     _id: string;
-    title: string;
+    name: string;
+    title?: string; // Alias for name
     description: string;
     type: 'ONLINE' | 'OFFLINE';
     location?: string;
     maxPlayers: number;
     currentPlayers: number;
     entryFee: number;
-    prizeDetails: string;
-    startTime: string;
+    prize: string;
+    prizeDetails?: string; // Alias for prize
+    startDate: string;
+    startTime?: string; // Alias for startDate
     status: 'OPEN' | 'FULL' | 'CLOSED';
-    adminId: string | User;
+    creatorId: string | User;
+    adminId?: string | User; // Alternative field name
     participants: (string | User)[];
     isPaid?: boolean;
     isParticipant?: boolean;

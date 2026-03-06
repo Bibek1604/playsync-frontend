@@ -120,7 +120,19 @@ export default function GamePage() {
   const participantsData = useMemo(() => {
     if (!game?.participants) return [];
     const creatorIdArr = typeof game.creatorId === 'object' ? (game.creatorId as any)._id : game.creatorId;
-    return game.participants.map((p) => {
+    
+    // Remove duplicate participants by userId
+    const seenIds = new Set<string>();
+    const uniqueParticipants = game.participants.filter((p) => {
+      const pUser = p.userId as any;
+      const pId = pUser?._id || pUser?.id || p.userId;
+      const idStr = pId.toString();
+      if (seenIds.has(idStr)) return false;
+      seenIds.add(idStr);
+      return true;
+    });
+
+    return uniqueParticipants.map((p) => {
       const pUser = p.userId as any;
       const pId = pUser?._id || pUser?.id || p.userId;
       return {
@@ -264,10 +276,10 @@ export default function GamePage() {
             );
           }
 
-          const msgUserId = msg.senderId;
+          const msgUserId = msg.senderId || msg.user?._id || msg.user?.id || msg.user;
           const isOwn = !!(currentUser.id && msgUserId?.toString() === currentUser.id.toString());
 
-          const prevMsgUserId = prevMsg?.senderId;
+          const prevMsgUserId = prevMsg?.senderId || prevMsg?.user?._id || prevMsg?.user?.id || prevMsg?.user;
           const isGrouped = !!(
             prevMsg &&
             prevMsg.type !== 'system' &&
@@ -288,9 +300,9 @@ export default function GamePage() {
                 message={{
                   id: msg._id || msg.id || String(idx),
                   senderId: msgUserId?.toString(),
-                  senderName: msg.senderName || 'Anonymous',
-                  senderAvatar: msg.senderAvatar,
-                  text: msg.text,
+                  senderName: msg.senderName || msg.user?.fullName || 'Anonymous',
+                  senderAvatar: msg.senderAvatar || msg.user?.profilePicture,
+                  text: msg.text || msg.content,
                   timestamp: msgDate,
                 }}
               />

@@ -55,17 +55,36 @@ export interface CreateTournamentInput {
   endDate?: string;
 }
 
+function normalizeTournament(t: any): Tournament {
+  return {
+    ...t,
+    name: t?.name || t?.title || '',
+    title: t?.title || t?.name,
+    prize: t?.prize || t?.prizeDetails || '',
+    startDate: t?.startDate || t?.startTime,
+    type: String(t?.type || 'ONLINE').toLowerCase() as 'online' | 'offline',
+    status: String(t?.status || 'OPEN').toLowerCase() as Tournament['status'],
+  } as Tournament;
+}
+
 // ── Tournament CRUD ─────────────────────────────────────────────────────
 
 export const tournamentApi = {
   list: async (params?: { page?: number; limit?: number; status?: string; type?: string }) => {
     const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.LIST, { params });
-    return res.data;
+    const payload = res.data;
+    if (Array.isArray(payload?.data)) {
+      return { ...payload, data: payload.data.map(normalizeTournament) };
+    }
+    if (Array.isArray(payload)) {
+      return payload.map(normalizeTournament);
+    }
+    return payload;
   },
 
   getById: async (id: string): Promise<Tournament> => {
     const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.BY_ID(id));
-    return res.data.data;
+    return normalizeTournament(res.data.data);
   },
 
   create: async (data: CreateTournamentInput): Promise<Tournament> => {
@@ -75,7 +94,7 @@ export const tournamentApi = {
 
   myTournaments: async (): Promise<Tournament[]> => {
     const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.MINE);
-    return res.data.data;
+    return (res.data.data || []).map(normalizeTournament);
   },
 
   update: async (id: string, data: Partial<CreateTournamentInput>): Promise<Tournament> => {
@@ -98,14 +117,44 @@ export const tournamentApi = {
     };
   },
 
-  verifyPayment: async (transactionUuid: string) => {
-    const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.VERIFY_PAYMENT, { params: { data: transactionUuid } });
-    return res.data;
+  verifyPayment: async (transactionUuid?: string) => {
+    const params = transactionUuid ? { data: transactionUuid } : {};
+    console.log(`[API] verifyPayment called with uuid=${transactionUuid || 'fallback mode'}`);
+    try {
+      const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.VERIFY_PAYMENT, { params });
+      console.log(`[API] verifyPayment success`);
+      return res.data;
+    } catch (err) {
+      console.error(`[API] verifyPayment error:`, err);
+      throw err;
+    }
   },
 
   getPaymentStatus: async (tournamentId: string) => {
-    const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.PAYMENT_STATUS(tournamentId));
-    return res.data.data as { status: 'pending' | 'success' | 'failed' | null };
+    console.log(`[API] getPaymentStatus called for tournament ${tournamentId}`);
+    try {
+      const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.PAYMENT_STATUS(tournamentId));
+      console.log(`[API] getPaymentStatus response:`, res?.data);
+
+      const data = res.data?.data;
+      if (!data) {
+        console.warn(`[API] Empty data in response`);
+        return { status: null };
+      }
+
+      const rawStatus = data.status ?? data.paymentStatus ?? data?.payment?.status ?? null;
+      const normalizedStatus = rawStatus ? String(rawStatus).toLowerCase() : null;
+
+      return {
+        status: normalizedStatus as 'pending' | 'success' | 'failed' | null,
+        paymentId: data.paymentId,
+        amount: data.amount,
+        transactionId: data.transactionId
+      };
+    } catch (err) {
+      console.error(`[API] getPaymentStatus error:`, err);
+      throw err;
+    }
   },
 
   checkChatAccess: async (tournamentId: string) => {
