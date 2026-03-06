@@ -6,12 +6,27 @@ import { tournamentService, paymentService } from '@/features/tournaments/api/to
 import { submitEsewaPaymentForm } from '@/lib/esewa';
 import { Trophy, MapPin, Users, Coins, ArrowRight, ShieldCheck, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useAuthStore } from '@/features/auth/store/auth-store';
 
 export default function TournamentsPage() {
-    const { data: tournaments, isLoading, error } = useQuery({
+    const user = useAuthStore((s) => s.user);
+    const currentUserId = String(user?.id || (user as any)?._id || '');
+
+    const isJoinedParticipant = (t: any): boolean => {
+        if (!currentUserId || !Array.isArray(t?.participants)) return false;
+        return t.participants.some((p: any) => {
+            const pUserId = typeof p?.userId === 'object' ? (p.userId?._id || p.userId?.id) : p?.userId;
+            return pUserId && String(pUserId) === currentUserId;
+        });
+    };
+
+    const { data: rawTournaments, isLoading, error } = useQuery({
         queryKey: ['tournaments'],
         queryFn: tournamentService.getAll,
     });
+
+    // Ensure tournaments is always an array
+    const tournaments = Array.isArray(rawTournaments) ? rawTournaments : [];
 
     const initiatePaymentMutation = useMutation({
         mutationFn: paymentService.initiatePayment,
@@ -26,7 +41,22 @@ export default function TournamentsPage() {
             }
         },
         onError: (err: any) => {
-            toast.error(err.response?.data?.message || 'Failed to initiate payment');
+            const msg = err?.response?.data?.message || 'Failed to initiate payment';
+            if (String(msg).toLowerCase().includes('already joined this tournament')) {
+                toast.success('Already joined. Opening tournament chat...');
+                if (err?.config?.data) {
+                    try {
+                        const parsed = JSON.parse(err.config.data);
+                        if (parsed?.tournamentId) {
+                            window.location.href = `/tournaments/${parsed.tournamentId}/chat`;
+                            return;
+                        }
+                    } catch {
+                        // Ignore parse failures and fallback below
+                    }
+                }
+            }
+            toast.error(msg);
         }
     });
 
@@ -75,7 +105,7 @@ export default function TournamentsPage() {
                 {tournaments?.map((t) => {
                     const isClosed = t.status === 'CLOSED';
                     const isFull = t.status === 'FULL' || t.currentPlayers >= t.maxPlayers;
-                    const normalizedPaymentStatus = (t.paymentStatus || '').toLowerCase();
+                    const isPaidOrJoined = Boolean(t.isPaid) || isJoinedParticipant(t) || String(t.paymentStatus || '').toLowerCase() === 'success';
                     // No pending state - only show paid or not paid
 
                     return (
@@ -85,7 +115,7 @@ export default function TournamentsPage() {
                                 <div className="absolute -right-10 -top-10 w-32 h-32 bg-gradient-to-br from-green-400/20 to-blue-500/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
 
                                 <div className="p-6 text-center z-10">
-                                    <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-1">{t.title}</h3>
+                                    <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-1">{t.name || t.title}</h3>
                                     <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white rounded-lg shadow-sm font-bold text-[10px] text-gray-600 uppercase tracking-widest">
                                         <div className={`w-1.5 h-1.5 rounded-full ${t.type === 'ONLINE' ? 'bg-green-500' : 'bg-purple-500'}`} />
                                         {t.type}
@@ -102,7 +132,7 @@ export default function TournamentsPage() {
                                     <div className="grid grid-cols-2 gap-3 text-sm">
                                         <div className="flex items-center gap-2 text-gray-600">
                                             <Trophy size={16} className="text-yellow-500" />
-                                            <span className="font-bold text-gray-900 truncate">Rs. {t.prizeDetails}</span>
+                                            <span className="font-bold text-gray-900 truncate">Rs. {t.prize || t.prizeDetails}</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-gray-600">
                                             <Coins size={16} className="text-green-500" />
@@ -125,14 +155,14 @@ export default function TournamentsPage() {
                             {/* Card Footer (Action) */}
                             <div className="p-4 bg-gray-50 mt-auto border-t border-gray-100 flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                    {t.isPaid ? (
+                                    {isPaidOrJoined ? (
                                         <span className="text-green-600 flex items-center gap-1"><ShieldCheck size={14} /> Paid</span>
                                     ) : (
                                         <span className="flex items-center gap-1"><AlertCircle size={14} className="text-amber-500" /> Not Paid</span>
                                     )}
                                 </div>
 
-                                {t.isPaid ? (
+                                {isPaidOrJoined ? (
                                     <button
                                         onClick={() => window.location.href = `/tournaments/${t._id}/chat`}
                                         className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-xl hover:bg-gray-800 transition-colors shadow-sm whitespace-nowrap"

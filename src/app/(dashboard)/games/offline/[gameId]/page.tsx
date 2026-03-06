@@ -105,7 +105,18 @@ export default function OfflineGamePage() {
     if (!game?.participants) return [];
     const creatorIdArr = typeof game.creatorId === 'object' ? (game.creatorId as any)._id : game.creatorId;
 
-    return game.participants.map(p => {
+    // Remove duplicate participants by userId
+    const seenIds = new Set<string>();
+    const uniqueParticipants = game.participants.filter((p) => {
+      const pUser = p.userId as any;
+      const pId = pUser?._id || pUser?.id || p.userId;
+      const idStr = pId.toString();
+      if (seenIds.has(idStr)) return false;
+      seenIds.add(idStr);
+      return true;
+    });
+
+    return uniqueParticipants.map(p => {
       const pUser = p.userId as any;
       const pId = pUser?._id || pUser?.id || p.userId;
       return {
@@ -217,11 +228,11 @@ export default function OfflineGamePage() {
             );
           }
 
-          const msgUserId = msg.user?._id || msg.user?.id || msg.user;
+          const msgUserId = msg.senderId || msg.user?._id || msg.user?.id || msg.user;
           const isOwn = currentUser.id && msgUserId?.toString() === currentUser.id.toString();
 
           const prevMsg = idx > 0 ? messages[idx - 1] : null;
-          const prevUserId = prevMsg?.user?._id || prevMsg?.user?.id || prevMsg?.user;
+          const prevUserId = prevMsg?.senderId || prevMsg?.user?._id || prevMsg?.user?.id || prevMsg?.user;
           const isGrouped = prevMsg && prevMsg.type !== 'system' && prevUserId?.toString() === msgUserId?.toString() && (new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() < 5 * 60 * 1000);
 
           const creatorId = typeof game.creatorId === 'object' ? (game.creatorId as any)._id : game.creatorId;
@@ -235,9 +246,9 @@ export default function OfflineGamePage() {
               message={{
                 id: msg.id || msg._id || idx.toString(),
                 senderId: msgUserId?.toString(),
-                senderName: msg.user?.fullName || 'Anonymous',
-                senderAvatar: msg.user?.profilePicture,
-                text: msg.content,
+                senderName: msg.senderName || msg.user?.fullName || 'Anonymous',
+                senderAvatar: msg.senderAvatar || msg.user?.profilePicture,
+                text: msg.text || msg.content,
                 timestamp: msg.createdAt ? new Date(msg.createdAt) : new Date()
               }}
             />

@@ -40,7 +40,8 @@ function getAvatarColor(name: string): string {
 
 /* ── detect if text is purely emoji ── */
 const EMOJI_REGEX = /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Emoji_Modifier_Base}|\u200d)+$/u;
-function isPureEmoji(text: string): boolean {
+function isPureEmoji(text: string | undefined): boolean {
+    if (!text) return false;
     return EMOJI_REGEX.test(text.trim()) && text.trim().length <= 12;
 }
 

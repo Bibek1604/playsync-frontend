@@ -58,6 +58,17 @@ export default function TournamentDetailPage() {
   const [paying, setPaying] = useState(false);
   const [checkingPayment, setCheckingPayment] = useState(false);
 
+  const getCurrentUserId = () => String(user?.id || (user as any)?._id || '');
+
+  const isUserParticipant = (t: Tournament | null): boolean => {
+    if (!t || !Array.isArray((t as any).participants) || !getCurrentUserId()) return false;
+    const userId = getCurrentUserId();
+    return (t as any).participants.some((p: any) => {
+      const pUserId = typeof p?.userId === 'object' ? (p.userId?._id || p.userId?.id) : p?.userId;
+      return pUserId && String(pUserId) === userId;
+    });
+  };
+
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -84,12 +95,21 @@ export default function TournamentDetailPage() {
           Boolean(user?.id) &&
           Boolean(creatorId) &&
           String(creatorId) === String(user?.id);
+        const participantJoined = isUserParticipant(t);
 
         console.log('[TOURNAMENT] Is creator check:', { userId: user?.id, creatorId, isCreator });
 
         // Auto-redirect to chat if creator
         if (isCreator) {
           console.log('[TOURNAMENT] ✅ User is creator - redirecting to chat');
+          setTimeout(() => router.replace(`/tournaments/${id}/chat`), 100);
+          return;
+        }
+
+        // Participant fallback: if user is already in participants list, unlock chat.
+        if (participantJoined) {
+          console.log('[TOURNAMENT] ✅ User is participant - redirecting to chat');
+          setPaymentStatus('success');
           setTimeout(() => router.replace(`/tournaments/${id}/chat`), 100);
           return;
         }
@@ -156,9 +176,9 @@ export default function TournamentDetailPage() {
 
   // Immediate verification when eSewa sends success - no pending state shown to user
   useEffect(() => {
-    const status = searchParams.get("status");
+    const status = (searchParams.get("status") || '').toLowerCase();
     const data = searchParams.get("data");
-    if (status !== "success" || data || !user) return;
+    if (!status || status === "failure" || data || !user) return;
 
     let cancelled = false;
 
@@ -166,6 +186,10 @@ export default function TournamentDetailPage() {
       try {
         // Immediate verification - no UI feedback during this process
         await tournamentApi.verifyPayment(); // Triggers backend fallback
+        setPaymentStatus('success');
+        toast.success("✓ Payment successful! Joining chat...");
+        router.replace(`/tournaments/${id}/chat?verified=1`);
+        return;
         
         // Quick status check - only 2 attempts, fast polling
         for (let attempt = 0; attempt < 2; attempt++) {
@@ -235,7 +259,7 @@ export default function TournamentDetailPage() {
     Boolean(user?.id) &&
     Boolean(creatorId) &&
     String(creatorId) === String(user?.id);
-  const isPaid = normalizedPaymentStatus === "success";
+  const isPaid = normalizedPaymentStatus === "success" || isUserParticipant(tournament);
   // No pending state - only show success or allow new payment
 
   const handleRefreshPaymentStatus = async () => {
@@ -325,7 +349,14 @@ export default function TournamentDetailPage() {
         setPaying(false);
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to initiate payment");
+      const msg = err?.response?.data?.message || "Failed to initiate payment";
+      if (String(msg).toLowerCase().includes('already joined this tournament')) {
+        setPaymentStatus('success');
+        toast.success('Already joined. Opening chat...');
+        router.push(`/tournaments/${id}/chat`);
+        return;
+      }
+      toast.error(msg);
       setPaying(false);
     }
   };

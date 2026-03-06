@@ -21,6 +21,7 @@ import { Badge, Card, Button } from '@/components/ui';
 
 export default function MessagesPage() {
     const { user } = useAuthStore();
+    const currentUserId = String(user?.id || (user as any)?._id || '');
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCategory, setFilterCategory] = useState<'ALL' | 'ONLINE' | 'OFFLINE'>('ALL');
 
@@ -48,7 +49,19 @@ export default function MessagesPage() {
     });
 
     const games = data?.games || [];
-    const joinedTournaments = (tournamentsData || []).filter(t => t.isParticipant && t.isPaid && t.status !== 'CLOSED');
+    const tournamentsArray = Array.isArray(tournamentsData) ? tournamentsData : (tournamentsData?.data as any[]) || [];
+    const joinedTournaments = tournamentsArray.filter((t: any) => {
+        const isClosed = String(t?.status || '').toUpperCase() === 'CLOSED';
+        if (isClosed) return false;
+
+        const participantMatch = Array.isArray(t?.participants) && t.participants.some((p: any) => {
+            const pUserId = typeof p?.userId === 'object' ? (p.userId?._id || p.userId?.id) : p?.userId;
+            return pUserId && String(pUserId) === currentUserId;
+        });
+
+        const paidMatch = Boolean(t?.isPaid) || String(t?.paymentStatus || '').toLowerCase() === 'success';
+        return participantMatch || paidMatch;
+    });
 
     const allLobbies = [
         ...games.map(g => ({
@@ -58,7 +71,7 @@ export default function MessagesPage() {
         })),
         ...joinedTournaments.map(t => ({
             _id: t._id,
-            title: t.title,
+            title: t.title || t.name,
             category: t.type?.toUpperCase() || 'ONLINE',
             currentPlayers: t.currentPlayers,
             maxPlayers: t.maxPlayers,

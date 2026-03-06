@@ -55,17 +55,36 @@ export interface CreateTournamentInput {
   endDate?: string;
 }
 
+function normalizeTournament(t: any): Tournament {
+  return {
+    ...t,
+    name: t?.name || t?.title || '',
+    title: t?.title || t?.name,
+    prize: t?.prize || t?.prizeDetails || '',
+    startDate: t?.startDate || t?.startTime,
+    type: String(t?.type || 'ONLINE').toLowerCase() as 'online' | 'offline',
+    status: String(t?.status || 'OPEN').toLowerCase() as Tournament['status'],
+  } as Tournament;
+}
+
 // ── Tournament CRUD ─────────────────────────────────────────────────────
 
 export const tournamentApi = {
   list: async (params?: { page?: number; limit?: number; status?: string; type?: string }) => {
     const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.LIST, { params });
-    return res.data;
+    const payload = res.data;
+    if (Array.isArray(payload?.data)) {
+      return { ...payload, data: payload.data.map(normalizeTournament) };
+    }
+    if (Array.isArray(payload)) {
+      return payload.map(normalizeTournament);
+    }
+    return payload;
   },
 
   getById: async (id: string): Promise<Tournament> => {
     const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.BY_ID(id));
-    return res.data.data;
+    return normalizeTournament(res.data.data);
   },
 
   create: async (data: CreateTournamentInput): Promise<Tournament> => {
@@ -75,7 +94,7 @@ export const tournamentApi = {
 
   myTournaments: async (): Promise<Tournament[]> => {
     const res = await apiClient.get(ENDPOINTS.TOURNAMENTS.MINE);
-    return res.data.data;
+    return (res.data.data || []).map(normalizeTournament);
   },
 
   update: async (id: string, data: Partial<CreateTournamentInput>): Promise<Tournament> => {
@@ -123,8 +142,11 @@ export const tournamentApi = {
         return { status: null };
       }
 
+      const rawStatus = data.status ?? data.paymentStatus ?? data?.payment?.status ?? null;
+      const normalizedStatus = rawStatus ? String(rawStatus).toLowerCase() : null;
+
       return {
-        status: (data.status || "").toLowerCase() as 'pending' | 'success' | 'failed' | null,
+        status: normalizedStatus as 'pending' | 'success' | 'failed' | null,
         paymentId: data.paymentId,
         amount: data.amount,
         transactionId: data.transactionId
