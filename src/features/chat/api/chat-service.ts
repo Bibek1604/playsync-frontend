@@ -8,15 +8,13 @@ interface ApiResponse<T> {
 }
 
 export interface ChatMessage {
-    _id: string;
-    gameId: string;
-    userId: string;
-    content: string;
-    createdAt: string;
-    user?: {
-        fullName: string;
-        avatar?: string;
-    };
+    _id: string;          // Database ID
+    senderId: string;     // Normalized User ID
+    senderName: string;   // Full name
+    senderAvatar?: string;
+    text: string;         // Content
+    type: 'text' | 'system';
+    createdAt: string;    // Timestamp
 }
 
 interface ChatHistoryResponse {

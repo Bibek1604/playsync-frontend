@@ -222,7 +222,7 @@ export default function OfflineGamePage() {
             return (
               <div key={idx} className="flex justify-center my-5">
                 <div className="px-4 py-1.5 bg-white border border-gray-100 rounded-full shadow-sm">
-                  <span className="text-[11px] font-semibold text-gray-400">{msg.content}</span>
+                  <span className="text-[11px] font-semibold text-gray-400">{msg.text}</span>
                 </div>
               </div>
             );
@@ -244,7 +244,7 @@ export default function OfflineGamePage() {
               isGrouped={isGrouped}
               isHost={creatorId?.toString() === msgUserId?.toString()}
               message={{
-                id: msg.id || msg._id || idx.toString(),
+                id: msg._id || msg.id || idx.toString(),
                 senderId: msgUserId?.toString(),
                 senderName: msg.senderName || msg.user?.fullName || 'Anonymous',
                 senderAvatar: msg.senderAvatar || msg.user?.profilePicture,

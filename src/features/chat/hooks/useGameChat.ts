@@ -27,10 +27,28 @@ export const useGameChat = (gameId: string) => {
             historyMessages = (history as any).messages;
         }
 
+        const normalizeMsg = (msg: any): ChatMessage => {
+            const userId = msg.senderId || msg.user?._id || msg.user?.id || msg.user || '';
+            return {
+                _id: msg._id || msg.id,
+                senderId: userId.toString(),
+                senderName: msg.senderName || msg.user?.fullName || 'Anonymous',
+                senderAvatar: msg.senderAvatar || msg.user?.profilePicture,
+                text: msg.text || msg.content || '',
+                type: msg.type || 'text',
+                createdAt: msg.createdAt,
+            };
+        };
+
         // Deduplicate
         const combined = [...historyMessages, ...socketMessages];
-        const unique = new Map();
-        combined.forEach(msg => unique.set(msg._id || msg.id, msg)); // adjust for ID differences if any
+        const unique = new Map<string, ChatMessage>();
+
+        combined.forEach(msg => {
+            const normalized = normalizeMsg(msg);
+            unique.set(normalized._id, normalized);
+        });
+
         return Array.from(unique.values()).sort((a, b) =>
             new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
@@ -42,11 +60,10 @@ export const useGameChat = (gameId: string) => {
         const socket = getSocket(accessToken);
 
         const handleMessage = (msg: any) => {
-            // Ensure message shape
             setSocketMessages(prev => [...prev, msg]);
         };
 
-        socket.on('chat:message', handleMessage); // Both user and system messages come here
+        socket.on('chat:message', handleMessage);
 
         return () => {
             socket.off('chat:message', handleMessage);

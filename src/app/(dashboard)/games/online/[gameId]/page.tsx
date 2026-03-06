@@ -269,7 +269,7 @@ export default function GamePage() {
                 {showDateSep && <DateSeparator date={msgDate} />}
                 <div className="flex justify-center my-4">
                   <div className="px-4 py-1.5 bg-white border border-gray-100 rounded-full shadow-sm">
-                    <span className="text-[11px] font-semibold text-gray-400">{msg.content}</span>
+                    <span className="text-[11px] font-semibold text-gray-400">{msg.text}</span>
                   </div>
                 </div>
               </div>
@@ -298,7 +298,7 @@ export default function GamePage() {
                 isGrouped={isGrouped}
                 isHost={creatorId?.toString() === msgUserId?.toString()}
                 message={{
-                  id: msg.id || msg._id || String(idx),
+                  id: msg._id || msg.id || String(idx),
                   senderId: msgUserId?.toString(),
                   senderName: msg.senderName || msg.user?.fullName || 'Anonymous',
                   senderAvatar: msg.senderAvatar || msg.user?.profilePicture,
