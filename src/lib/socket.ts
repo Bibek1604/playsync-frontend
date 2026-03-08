@@ -23,7 +23,7 @@ export const getSocket = (token?: string | null): Socket => {
             auth: {
                 token,
             },
-            transports: ['websocket', 'polling'], // Try WebSocket first, fallback to polling
+            transports: ['websocket'], // Force WebSocket for better performance, matching mobile web config
             reconnection: true,
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,
@@ -41,7 +41,7 @@ export const getSocket = (token?: string | null): Socket => {
 
         socket.on('disconnect', (reason: string) => {
             console.log('🔌 Socket disconnected:', reason);
-            
+
             // Auto-reconnect if server initiated disconnect
             if (reason === 'io server disconnect') {
                 socket?.connect();
@@ -54,21 +54,21 @@ export const getSocket = (token?: string | null): Socket => {
     } else {
         // Socket exists - check if token changed
         const currentToken = (socket.auth as { token?: string }).token;
-        
+
         if (currentToken !== token) {
             console.log('🔄 Token changed - reconnecting socket');
-            
+
             // Remove all listeners to prevent duplicates
             socket.removeAllListeners();
-            
+
             // Update auth token
             socket.auth = { token };
-            
+
             // Disconnect and reconnect with new token
             if (socket.connected) {
                 socket.disconnect();
             }
-            
+
             // Re-add essential listeners
             socket.on('connect', () => {
                 console.log('✅ Socket reconnected:', socket?.id);
@@ -81,7 +81,7 @@ export const getSocket = (token?: string | null): Socket => {
             socket.on('disconnect', (reason: string) => {
                 console.log('🔌 Socket disconnected:', reason);
             });
-            
+
             socket.connect();
         } else if (!socket.connected) {
             // Same token but disconnected - reconnect

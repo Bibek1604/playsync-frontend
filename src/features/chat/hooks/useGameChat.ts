@@ -54,10 +54,22 @@ export const useGameChat = (gameId: string) => {
         );
     }, [history, socketMessages]);
 
-    // 3. Socket Listeners
+    // 3. Socket Listeners & Room Management
     useEffect(() => {
         if (!accessToken || !gameId) return;
         const socket = getSocket(accessToken);
+
+        // Join the game room to receive broadcasts
+        const joinRoom = () => {
+            console.log(`🎮 Joining game room: ${gameId}`);
+            socket.emit('join:game', gameId);
+        };
+
+        if (socket.connected) {
+            joinRoom();
+        }
+
+        socket.on('connect', joinRoom);
 
         const handleMessage = (msg: any) => {
             setSocketMessages(prev => [...prev, msg]);
@@ -66,7 +78,10 @@ export const useGameChat = (gameId: string) => {
         socket.on('chat:message', handleMessage);
 
         return () => {
+            console.log(`🚪 Leaving game room: ${gameId}`);
+            socket.emit('leave:game', gameId);
             socket.off('chat:message', handleMessage);
+            socket.off('connect', joinRoom);
         };
     }, [accessToken, gameId]);
 
@@ -74,7 +89,14 @@ export const useGameChat = (gameId: string) => {
     const sendMessage = (content: string) => {
         if (!content.trim() || !accessToken) return;
         const socket = getSocket(accessToken);
-        socket.emit('chat:send', { gameId, content });
+
+        // Use acknowledgment callback for better reliability
+        socket.emit('chat:send', { gameId, content }, (ack: any) => {
+            if (ack && !ack.success) {
+                console.error('❌ Failed to send message:', ack.error);
+            }
+        });
+
         setInput('');
     };
 
